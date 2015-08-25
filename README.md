@@ -11,7 +11,7 @@ Official mysql plugin for dokku. Currently installs mysql 5.7.
 
 ```
 cd /var/lib/dokku/plugins
-git clone https://github.com/dokku/dokku-mysql-plugin.git mysql
+git clone https://github.com/dokku/dokku-mysql.git mysql
 dokku plugins-install-dependencies
 dokku plugins-install
 ```
