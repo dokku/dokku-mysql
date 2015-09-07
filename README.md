@@ -25,15 +25,16 @@ mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service
 mysql:destroy <name>           Delete the service and stop its container if there are no links left
 mysql:export <name>            Export a dump of the mysql service database
-mysql:expose <name> <port>     NOT IMPLEMENTED
+mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
 mysql:import <name> <file>     NOT IMPLEMENTED
 mysql:info <name>              Print the connection information
 mysql:link <name> <app>        Link the mysql service to the app
 mysql:list                     List all mysql services
 mysql:logs <name> [-t]         Print the most recent log(s) for this service
-mysql:restart <name>           Graceful shutdown and restart of the service container
-mysql:unexpose <name> <port>   NOT IMPLEMENTED
-mysql:unlink <name> <app>      Unlink the mysql service from the app
+mysql:restart <name>           Graceful shutdown and restart of the mysql service container
+mysql:start <name>             Start a previously stopped mysql service
+mysql:stop <name>              Stop a running mysql service
+mysql:unexpose <name>          Unexpose a previously exposed mysql service
 ```
 
 ## usage
@@ -65,7 +66,7 @@ dokku mysql:link lolipop playground
 # the above will expose the following environment variables
 #
 #   DATABASE_URL=mysql://mysql:SOME_PASSWORD@172.17.0.1:3306/lolipop
-#   DATABASE_NAME=/playground/DATABASE
+#   DATABASE_NAME=/lolipop/DATABASE
 #   DATABASE_PORT=tcp://172.17.0.1:3306
 #   DATABASE_PORT_3306_TCP=tcp://172.17.0.1:3306
 #   DATABASE_PORT_3306_TCP_PROTO=tcp
@@ -85,11 +86,10 @@ dokku mysql:logs lolipop
 dokku mysql:logs lolipop -t # to tail
 
 # finally, you can destroy the container
-dokku mysql:destroy playground
+dokku mysql:destroy lolipop
 ```
 
 ## todo
 
 - implement mysql:clone
-- implement mysql:expose
 - implement mysql:import
