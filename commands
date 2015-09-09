@@ -1,19 +1,11 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
-source "$(dirname "$0")/../common/functions"
+source "$PLUGIN_PATH/common/functions"
 source "$(dirname "$0")/functions"
 source "$(dirname "$0")/config"
 
 if [[ ! -d $PLUGIN_DATA_ROOT ]]; then
   dokku_log_fail "$PLUGIN_SERVICE: Please run: sudo dokku plugins-install"
-fi
-
-if ! command -v mysql &>/dev/null; then
-  dokku_log_fail "$PLUGIN_SERVICE: Please run: sudo dokku plugins-install-dependencies"
-fi
-
-if ! command -v mysqldump &>/dev/null; then
-  dokku_log_fail "$PLUGIN_SERVICE: Please run: sudo dokku plugins-install-dependencies"
 fi
 
 case "$1" in
@@ -121,11 +113,10 @@ case "$1" in
     [[ -z $2 ]] && dokku_log_fail "Please specify a name for the service"
     verify_service_name "$2"
     SERVICE="$2"; SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
-
+    SERVICE_NAME="$(get_service_name "$SERVICE")"
     PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
-    IP=$(get_container_ip "$ID")
 
-    mysqldump --host="$IP" --port=3306 --user=mysql --password="$PASSWORD" --databases "$SERVICE"
+    docker exec "$SERVICE_NAME" mysqldump --host=localhost --user=mysql --password="$PASSWORD" --databases "$SERVICE"
     ;;
 
   $PLUGIN_COMMAND_PREFIX:import)
@@ -166,11 +157,10 @@ case "$1" in
     [[ -z $2 ]] && dokku_log_fail "Please specify a name for the service"
     verify_service_name "$2"
     SERVICE="$2"; SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
+    SERVICE_NAME="$(get_service_name "$SERVICE")"
 
-    ID=$(cat "$SERVICE_ROOT/ID")
-    IP=$(get_container_ip "$ID")
     PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
-    mysql --host="$IP" --port=3306 --user=mysql --password="$PASSWORD" --database="$SERVICE"
+    docker exec -it "$SERVICE_NAME" mysql --host=localhost --user=mysql --password="$PASSWORD" --database="$SERVICE"
     ;;
 
   $PLUGIN_COMMAND_PREFIX:info)
