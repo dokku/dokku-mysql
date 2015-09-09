@@ -39,7 +39,7 @@ case "$1" in
     echo "$ID" > "$SERVICE_ROOT/ID"
 
     dokku_log_verbose_quiet "Waiting for container to be ready"
-    sleep 10
+    docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" aanand/wait > /dev/null
 
     dokku_log_info2 "$PLUGIN_SERVICE container created: $SERVICE"
     dokku "$PLUGIN_COMMAND_PREFIX:info" "$SERVICE"
@@ -49,6 +49,7 @@ case "$1" in
     [[ -z $2 ]] && dokku_log_fail "Please specify a name for the service"
     verify_service_name "$2"
     SERVICE="$2"; SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"; LINKS_FILE="$SERVICE_ROOT/LINKS"
+    SERVICE_NAME="$(get_service_name "$SERVICE")"
 
     [[ -s "$LINKS_FILE" ]] && dokku_log_fail "Cannot delete linked service"
 
@@ -72,7 +73,7 @@ case "$1" in
 
       dokku_log_verbose_quiet "Deleting container data"
       service_start "$SERVICE"
-      sleep 10
+      docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" aanand/wait > /dev/null
       docker exec -it "$ID" chmod -R 777 /var/lib/mysql
 
       service_stop "$SERVICE"
