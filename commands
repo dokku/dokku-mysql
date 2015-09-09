@@ -27,8 +27,8 @@ case "$1" in
 
     mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
     mkdir -p "$SERVICE_ROOT/data" || dokku_log_fail "Unable to create service data directory"
-    rootpassword=$(date +%s | sha256sum | base64 | head -c 16)
-    password=$(date +%s | sha256sum | base64 | head -c 16)
+    rootpassword=$(openssl rand -hex 16)
+    password=$(openssl rand -hex 16)
     echo "$rootpassword" > "$SERVICE_ROOT/ROOTPASSWORD"
     echo "$password" > "$SERVICE_ROOT/PASSWORD"
     touch "$LINKS_FILE"
