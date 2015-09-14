@@ -20,13 +20,13 @@ dokku plugins-install
 
 ```
 mysql:alias <name> <alias>     Set an alias for the docker link
-mysql:clone <name> <new-name>  NOT IMPLEMENTED
+mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service
 mysql:destroy <name>           Delete the service and stop its container if there are no links left
 mysql:export <name>            Export a dump of the mysql service database
 mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
-mysql:import <name> <file>     NOT IMPLEMENTED
+mysql:import <name> < <file>   Import a dump into the mysql service database
 mysql:info <name>              Print the connection information
 mysql:link <name> <app>        Link the mysql service to the app
 mysql:list                     List all mysql services
@@ -84,6 +84,15 @@ dokku mysql:unlink lolipop playground
 # you can tail logs for a particular service
 dokku mysql:logs lolipop
 dokku mysql:logs lolipop -t # to tail
+
+# you can dump the database
+dokku mysql:export lolipop > lolipop.sql
+
+# you can import a dump
+dokku mysql:import lolipop < database.sql
+
+# you can clone an existing database to a new one
+dokku mysql:clone lolipop new_database
 
 # finally, you can destroy the container
 dokku mysql:destroy lolipop
