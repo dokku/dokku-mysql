@@ -97,8 +97,3 @@ dokku mysql:clone lolipop new_database
 # finally, you can destroy the container
 dokku mysql:destroy lolipop
 ```
-
-## todo
-
-- implement mysql:clone
-- implement mysql:import
