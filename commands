@@ -169,9 +169,10 @@ case "$1" in
     verify_service_name "$2"
     SERVICE="$2"; SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
     SERVICE_NAME="$(get_service_name "$SERVICE")"
-
     PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
-    docker exec -it "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$SERVICE"
+    has_tty && SERVICE_TTY_OPTS="-t"
+
+    docker exec -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$SERVICE"
     ;;
 
   $PLUGIN_COMMAND_PREFIX:info)
