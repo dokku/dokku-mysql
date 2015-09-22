@@ -22,7 +22,6 @@ dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 ## commands
 
 ```
-mysql:alias <name> <alias>     Set an alias for the docker link
 mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service
@@ -34,6 +33,7 @@ mysql:info <name>              Print the connection information
 mysql:link <name> <app>        Link the mysql service to the app
 mysql:list                     List all mysql services
 mysql:logs <name> [-t]         Print the most recent log(s) for this service
+mysql:promote <name> <app>     Promote service <name> as DATABASE_URL in <app>
 mysql:restart <name>           Graceful shutdown and restart of the mysql service container
 mysql:start <name>             Start a previously stopped mysql service
 mysql:stop <name>              Stop a running mysql service
@@ -57,8 +57,6 @@ dokku mysql:create lolipop
 # get connection information as follows
 dokku mysql:info lolipop
 
-# lets assume the ip of our mysql service is 172.17.0.1
-
 # a mysql service can be linked to a
 # container this will use native docker
 # links via the docker-options plugin
@@ -68,24 +66,42 @@ dokku mysql:link lolipop playground
 
 # the above will expose the following environment variables
 #
-#   DATABASE_URL=mysql://mysql:SOME_PASSWORD@172.17.0.1:3306/lolipop
-#   DATABASE_NAME=/lolipop/DATABASE
-#   DATABASE_PORT=tcp://172.17.0.1:3306
-#   DATABASE_PORT_3306_TCP=tcp://172.17.0.1:3306
-#   DATABASE_PORT_3306_TCP_PROTO=tcp
-#   DATABASE_PORT_3306_TCP_PORT=3306
-#   DATABASE_PORT_3306_TCP_ADDR=172.17.0.1
+#   DOKKU_MYSQL_LOLIPOP_NAME=/lolipop/DATABASE
+#   DOKKU_MYSQL_LOLIPOP_PORT=tcp://172.17.0.1:3306
+#   DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP=tcp://172.17.0.1:3306
+#   DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_PROTO=tcp
+#   DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_PORT=3306
+#   DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
+#
+# and the following will be set on the linked application by default
+#
+#   DATABASE_URL=mysql://mysql:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+#
+# NOTE: the host exposed here only works internally in docker containers. If
+# you want your container to be reachable from outside, you should use `expose`.
 
-# you can examine the environment variables
-# using our 'playground' app's env command
-dokku run playground env
+# another service can be linked to your app
+dokku mysql:link other_service playground
 
-# you can customize the environment
-# variables through a custom docker link alias
-dokku mysql:alias lolipop MYSQL_DATABASE
+# since DATABASE_URL is already in use, another environment variable will be
+# generated automatically
+#
+#   DOKKU_MYSQL_BLUE_URL=mysql://mysql:ANOTHER_PASSWORD@dokku-mysql-other-service:3306/other_service
+
+# you can then promote the new service to be the primary one
+# NOTE: this will restart your app
+dokku mysql:promote other_service playground
+
+# this will replace DATABASE_URL with the url from other_service and generate
+# another environment variable to hold the previous value if necessary.
+# you could end up with the following for example:
+#
+#   DATABASE_URL=mysql://mysql:ANOTHER_PASSWORD@dokku-mysql-other_service:3306/other_service
+#   DOKKU_MYSQL_BLUE_URL=mysql://mysql:ANOTHER_PASSWORD@dokku-mysql-other-service:3306/other_service
+#   DOKKU_MYSQL_SILVER_URL=mysql://mysql:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 
 # you can also unlink a mysql service
-# NOTE: this will restart your app
+# NOTE: this will restart your app and unset related environment variables
 dokku mysql:unlink lolipop playground
 
 # you can tail logs for a particular service
