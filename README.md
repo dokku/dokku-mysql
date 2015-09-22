@@ -10,10 +10,8 @@ Official mysql plugin for dokku. Currently defaults to installing [mysql 5.6.26]
 ## installation
 
 ```
-cd /var/lib/dokku/plugins
-git clone https://github.com/dokku/dokku-mysql.git mysql
-dokku plugins-install-dependencies
-dokku plugins-install
+dokku plugin:install-dependencies
+dokku plugin:install https://github.com/dokku/dokku-mysql.git
 ```
 
 ## commands
