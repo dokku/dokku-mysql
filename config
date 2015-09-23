@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 export MYSQL_IMAGE=${MYSQL_IMAGE:="mysql"}
 export MYSQL_IMAGE_VERSION=${MYSQL_IMAGE_VERSION:="5.6.26"}
-export MYSQL_ROOT=/var/lib/dokku/services/mysql
+export MYSQL_ROOT=${MYSQL_ROOT:="/var/lib/dokku/services/mysql"}
 
 export PLUGIN_COMMAND_PREFIX="mysql"
-export PLUGIN_DATA_ROOT=${PLUGIN_DATA_ROOT:="$MYSQL_ROOT"}
+export PLUGIN_DATA_ROOT=$MYSQL_ROOT
 export PLUGIN_DATASTORE_PORTS=(3306)
 export PLUGIN_DEFAULT_ALIAS="DATABASE"
 export PLUGIN_IMAGE=$MYSQL_IMAGE
