@@ -22,5 +22,13 @@ teardown() {
 @test "($PLUGIN_COMMAND_PREFIX:info) success" {
   run dokku "$PLUGIN_COMMAND_PREFIX:info" l
   password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
-  assert_contains "${lines[*]}" "DSN: mysql://mysql:$password@172.17.0.34:3306/l"
+  assert_contains "${lines[*]}" "DSN: mysql://mysql:$password@dokku-mysql-l:3306/l"
+}
+
+@test "($PLUGIN_COMMAND_PREFIX:info) replaces underscores by dash in hostname" {
+  dokku "$PLUGIN_COMMAND_PREFIX:create" test_with_underscores
+  run dokku "$PLUGIN_COMMAND_PREFIX:info" test_with_underscores
+  password="$(cat "$PLUGIN_DATA_ROOT/test_with_underscores/PASSWORD")"
+  assert_contains "${lines[*]}" "DSN: mysql://mysql:$password@dokku-mysql-test-with-underscores:3306/test_with_underscores"
+  dokku --force "$PLUGIN_COMMAND_PREFIX:destroy" test_with_underscores
 }
