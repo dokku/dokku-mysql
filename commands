@@ -68,25 +68,20 @@ case "$1" in
     fi
 
     dokku_log_info1 "Deleting $SERVICE"
-    if [[ -f "$SERVICE_ROOT/ID" ]] && docker ps -aq --no-trunc | grep -q "$(cat "$SERVICE_ROOT/ID")"; then
-      ID=$(cat "$SERVICE_ROOT/ID")
-
+    if [[ -n $(docker ps -aq -f name="$SERVICE_NAME") ]]; then
       dokku_log_verbose_quiet "Deleting container data"
-      service_start "$SERVICE"
-      docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" dokkupaas/wait > /dev/null
-      docker exec -it "$ID" chmod -R 777 /var/lib/mysql
-
       service_stop "$SERVICE"
       sleep 1
 
       dokku_log_verbose_quiet "Removing container"
-      docker rm -v "$ID" > /dev/null
+      docker rm -v "$SERVICE_NAME" > /dev/null
       sleep 1
     else
       dokku_log_verbose_quiet "No container exists for $SERVICE"
     fi
 
     dokku_log_verbose_quiet "Removing data"
+    docker run --rm -v "$SERVICE_ROOT/data:/data" "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" chmod 777 -R /data
     rm -rf "$SERVICE_ROOT"
 
     dokku_log_info2 "$PLUGIN_SERVICE container deleted: $SERVICE"
