@@ -110,7 +110,9 @@ case "$1" in
     SERVICE_NAME="$(get_service_name "$SERVICE")"
     PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
 
+    [[ -n $SSH_TTY ]] && stty -opost
     docker exec "$SERVICE_NAME" mysqldump --user=mysql --password="$PASSWORD" "$SERVICE"
+    [[ -n $SSH_TTY ]] && stty opost
     ;;
 
   $PLUGIN_COMMAND_PREFIX:import)
