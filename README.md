@@ -26,7 +26,7 @@ mysql:clone <name> <new-name>  Create container <new-name> then copy data from <
 mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service
 mysql:destroy <name>           Delete the service and stop its container if there are no links left
-mysql:export <name>            Export a dump of the mysql service database
+mysql:export <name> > <file>   Export a dump of the mysql service database
 mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
 mysql:import <name> < <file>   Import a dump into the mysql service database
 mysql:info <name>              Print the connection information
