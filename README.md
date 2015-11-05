@@ -24,7 +24,7 @@ dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 ```
 mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <name>           Connect via mysql to a mysql service
-mysql:create <name>            Create a mysql service
+mysql:create <name>            Create a mysql service with environment variables
 mysql:destroy <name>           Delete the service and stop its container if there are no links left
 mysql:export <name> > <file>   Export a dump of the mysql service database
 mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
@@ -52,6 +52,13 @@ dokku mysql:create lolipop
 # official mysql image
 export MYSQL_IMAGE="mysql"
 export MYSQL_IMAGE_VERSION="5.5"
+
+# you can also specify custom environment
+# variables to start the mysql service
+# in semi-colon separated forma
+export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
+
+# create a mysql service
 dokku mysql:create lolipop
 
 # get connection information as follows
