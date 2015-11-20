@@ -27,6 +27,8 @@ case "$1" in
 
     mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
     mkdir -p "$SERVICE_ROOT/data" || dokku_log_fail "Unable to create service data directory"
+    mkdir -p "$SERVICE_ROOT/config" || dokku_log_fail "Unable to create service config directory"
+    echo -e "[mysqld]\nperformance_schema = 0" > "$SERVICE_ROOT/config/disable_performance_schema.cnf"
     rootpassword=$(openssl rand -hex 8)
     password=$(openssl rand -hex 8)
     echo "$rootpassword" > "$SERVICE_ROOT/ROOTPASSWORD"
@@ -40,7 +42,7 @@ case "$1" in
       echo "" > "$SERVICE_ROOT/ENV"
     fi
     SERVICE_NAME=$(get_service_name "$SERVICE")
-    ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -e "MYSQL_ROOT_PASSWORD=$rootpassword" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$password" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+    ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -v "$SERVICE_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$rootpassword" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$password" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
     echo "$ID" > "$SERVICE_ROOT/ID"
 
     dokku_log_verbose_quiet "Waiting for container to be ready"
