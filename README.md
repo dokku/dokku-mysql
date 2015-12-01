@@ -38,6 +38,7 @@ mysql:restart <name>           Graceful shutdown and restart of the mysql servic
 mysql:start <name>             Start a previously stopped mysql service
 mysql:stop <name>              Stop a running mysql service
 mysql:unexpose <name>          Unexpose a previously exposed mysql service
+mysql:unlink <name> <app>      Unlink the mysql service from the app
 ```
 
 ## usage
