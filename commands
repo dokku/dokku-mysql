@@ -33,6 +33,7 @@ case "$1" in
     password=$(openssl rand -hex 8)
     echo "$rootpassword" > "$SERVICE_ROOT/ROOTPASSWORD"
     echo "$password" > "$SERVICE_ROOT/PASSWORD"
+    chmod 640 "$SERVICE_ROOT/ROOTPASSWORD" "$SERVICE_ROOT/PASSWORD"
     touch "$LINKS_FILE"
 
     dokku_log_info1 "Starting container"
