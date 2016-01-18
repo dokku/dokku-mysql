@@ -59,3 +59,12 @@ teardown() {
   assert_contains "${lines[*]}" "--link dokku.mysql.l:dokku-mysql-l"
   dokku "$PLUGIN_COMMAND_PREFIX:unlink" l my_app
 }
+
+@test "($PLUGIN_COMMAND_PREFIX:link) uses apps DATABASE_ADAPTER variable" {
+  dokku config:set my_app DATABASE_ADAPTER=mysql2
+  dokku "$PLUGIN_COMMAND_PREFIX:link" l my_app
+  url=$(dokku config:get my_app DATABASE_URL)
+  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  assert_contains "$url" "mysql2://mysql:$password@dokku-mysql-l:3306/l"
+  dokku "$PLUGIN_COMMAND_PREFIX:unlink" l my_app
+}
