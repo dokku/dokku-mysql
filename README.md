@@ -136,7 +136,7 @@ It's possible to change the protocol for DATABASE_URL by setting
 the environment variable DATABASE_ADAPTER on the app:
 
 ```
-dokku config:set lolipop DATABASE_ADAPTER=mysql2
+dokku config:set playground DATABASE_ADAPTER=mysql2
 dokku mysql:link lolipop playground
 ```
 
