@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 source "$(dirname "$0")/config"
+source "$PLUGIN_AVAILABLE_PATH/config/functions"
 
 get_random_ports() {
   local iterations="${1:-1}"
@@ -356,6 +357,6 @@ service_linked_apps() {
 
 update_plugin_scheme_for_app() {
   local APP=$1
-  local DATABASE_ADAPTER=$(dokku config:get $APP DATABASE_ADAPTER)
+  local DATABASE_ADAPTER=$(config_get $APP DATABASE_ADAPTER)
   PLUGIN_SCHEME=${DATABASE_ADAPTER:-$PLUGIN_SCHEME}
 }
