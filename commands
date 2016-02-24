@@ -124,7 +124,9 @@ case "$1" in
 
     [[ -n $SSH_TTY ]] && stty -opost
     docker exec "$SERVICE_NAME" mysqldump --user=mysql --password="$PASSWORD" "$SERVICE"
+    status=$?
     [[ -n $SSH_TTY ]] && stty opost
+    exit $status
     ;;
 
   $PLUGIN_COMMAND_PREFIX:import)
