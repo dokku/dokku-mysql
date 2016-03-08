@@ -357,6 +357,6 @@ service_linked_apps() {
 
 update_plugin_scheme_for_app() {
   local APP=$1
-  local DATABASE_ADAPTER=$(config_get $APP DATABASE_ADAPTER)
-  PLUGIN_SCHEME=${DATABASE_ADAPTER:-$PLUGIN_SCHEME}
+  local DATABASE_SCHEME=$(config_get $APP DATABASE_SCHEME)
+  PLUGIN_SCHEME=${DATABASE_SCHEME:-$PLUGIN_SCHEME}
 }

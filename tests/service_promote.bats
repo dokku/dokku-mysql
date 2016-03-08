@@ -54,9 +54,9 @@ teardown() {
   assert_contains "${lines[*]}" "DOKKU_MYSQL_"
 }
 
-@test "($PLUGIN_COMMAND_PREFIX:promote) uses DATABASE_ADAPTER variable" {
+@test "($PLUGIN_COMMAND_PREFIX:promote) uses DATABASE_SCHEME variable" {
   password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
-  dokku config:set my_app "DATABASE_ADAPTER=mysql2" "DATABASE_URL=mysql://u:p@host:3306/db" "DOKKU_MYSQL_BLUE_URL=mysql2://mysql:$password@dokku-mysql-l:3306/l"
+  dokku config:set my_app "DATABASE_SCHEME=mysql2" "DATABASE_URL=mysql://u:p@host:3306/db" "DOKKU_MYSQL_BLUE_URL=mysql2://mysql:$password@dokku-mysql-l:3306/l"
   dokku "$PLUGIN_COMMAND_PREFIX:promote" l my_app
   url=$(dokku config:get my_app DATABASE_URL)
   assert_contains "$url" "mysql2://mysql:$password@dokku-mysql-l:3306/l"
