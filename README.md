@@ -133,26 +133,26 @@ dokku mysql:destroy lolipop
 ## Changing database adapter
 
 It's possible to change the protocol for DATABASE_URL by setting
-the environment variable DATABASE_SCHEME on the app:
+the environment variable MYSQL_DATABASE_SCHEME on the app:
 
 ```
-dokku config:set playground DATABASE_SCHEME=mysql2
+dokku config:set playground MYSQL_DATABASE_SCHEME=mysql2
 dokku mysql:link lolipop playground
 ```
 
 Will cause DATABASE_URL to be set as
 mysql2://mysql:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 
-CAUTION: Changing DATABASE_SCHEME after linking will cause dokku to believe
-the service is not linked when attempting to use `dokku mysql:unlink` or
-`dokku mysql:promote`.
+CAUTION: Changing MYSQL_DATABASE_SCHEME after linking will cause dokku to
+believe the service is not linked when attempting to use `dokku mysql:unlink`
+or `dokku mysql:promote`.
 You should be able to fix this by
 
 - Changing DATABASE_URL manually to the new value.
 
 OR
 
-- Set DATABASE_SCHEME back to its original setting
+- Set MYSQL_DATABASE_SCHEME back to its original setting
 - Unlink the service
-- Change DATABASE_SCHEME to the desired setting
+- Change MYSQL_DATABASE_SCHEME to the desired setting
 - Relink the service

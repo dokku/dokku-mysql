@@ -60,8 +60,8 @@ teardown() {
   dokku "$PLUGIN_COMMAND_PREFIX:unlink" l my_app
 }
 
-@test "($PLUGIN_COMMAND_PREFIX:link) uses apps DATABASE_SCHEME variable" {
-  dokku config:set my_app DATABASE_SCHEME=mysql2
+@test "($PLUGIN_COMMAND_PREFIX:link) uses apps MYSQL_DATABASE_SCHEME variable" {
+  dokku config:set my_app MYSQL_DATABASE_SCHEME=mysql2
   dokku "$PLUGIN_COMMAND_PREFIX:link" l my_app
   url=$(dokku config:get my_app DATABASE_URL)
   password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
