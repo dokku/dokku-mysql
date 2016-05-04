@@ -40,21 +40,12 @@ case "$1" in
     chmod 640 "$SERVICE_ROOT/ROOTPASSWORD" "$SERVICE_ROOT/PASSWORD"
     touch "$LINKS_FILE"
 
-    dokku_log_info1 "Starting container"
     if [[ -n $MYSQL_CUSTOM_ENV ]]; then
       echo "$MYSQL_CUSTOM_ENV" | tr ';' "\n" > "$SERVICE_ROOT/ENV"
     else
       echo "" > "$SERVICE_ROOT/ENV"
     fi
-    SERVICE_NAME=$(get_service_name "$SERVICE")
-    ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -v "$SERVICE_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$rootpassword" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$password" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
-    echo "$ID" > "$SERVICE_ROOT/ID"
-
-    dokku_log_verbose_quiet "Waiting for container to be ready"
-    docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" dokkupaas/wait > /dev/null
-
-    dokku_log_info2 "$PLUGIN_SERVICE container created: $SERVICE"
-    dokku "$PLUGIN_COMMAND_PREFIX:info" "$SERVICE"
+    service_create_container "$SERVICE"
     ;;
 
   $PLUGIN_COMMAND_PREFIX:destroy)
