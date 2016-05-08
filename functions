@@ -384,6 +384,6 @@ service_linked_apps() {
 
 update_plugin_scheme_for_app() {
   local APP=$1
-  local MYSQL_DATABASE_SCHEME=$(config_get $APP MYSQL_DATABASE_SCHEME)
+  local MYSQL_DATABASE_SCHEME=$(config_get "$APP" MYSQL_DATABASE_SCHEME)
   PLUGIN_SCHEME=${MYSQL_DATABASE_SCHEME:-$PLUGIN_SCHEME}
 }
