@@ -256,7 +256,7 @@ service_create_container() {
   local ROOTPASSWORD=$(cat "$SERVICE_ROOT/ROOTPASSWORD")
   local PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
 
-  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -v "$SERVICE_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=\`$SERVICE\`" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -v "$SERVICE_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
   echo "$ID" > "$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
