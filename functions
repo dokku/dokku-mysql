@@ -389,7 +389,7 @@ service_create_container() {
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
   local ROOTPASSWORD=$(cat "$SERVICE_ROOT/ROOTPASSWORD")
-  local PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
+  local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
 
   ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_ROOT/data:/var/lib/mysql" -v "$SERVICE_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
   echo "$ID" > "$SERVICE_ROOT/ID"
@@ -405,7 +405,7 @@ service_export() {
   local SERVICE="$1"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
-  local PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
+  local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
 
   [[ -n $SSH_TTY ]] && stty -opost
   docker exec "$SERVICE_NAME" mysqldump --user=mysql --password="$PASSWORD" "$SERVICE"
@@ -441,7 +441,7 @@ service_start() {
   local PREVIOUS_ID=$(docker ps -f status=exited | grep -e "$SERVICE_NAME$" | awk '{print $1}') || true
   local IMAGE_EXISTS=$(docker images | grep -e "^$PLUGIN_IMAGE " | grep -q " $PLUGIN_IMAGE_VERSION " && true)
   local ROOTPASSWORD=$(cat "$SERVICE_ROOT/ROOTPASSWORD")
-  local PASSWORD=$(cat "$SERVICE_ROOT/PASSWORD")
+  local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
 
   if [[ -n $PREVIOUS_ID ]]; then
     docker start "$PREVIOUS_ID" > /dev/null
