@@ -48,17 +48,25 @@ dokku mysql:create lolipop
 # official mysql image
 export MYSQL_IMAGE="mysql"
 export MYSQL_IMAGE_VERSION="5.5"
+dokku mysql:create lolipop
 
 # you can also specify custom environment
 # variables to start the mysql service
 # in semi-colon separated forma
 export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
-
-# create a mysql service
 dokku mysql:create lolipop
 
 # get connection information as follows
 dokku mysql:info lolipop
+
+# you can also retrieve a specific piece of service info via flags
+dokku mysql:info lolipop --config-dir
+dokku mysql:info lolipop --data-dir
+dokku mysql:info lolipop --dsn
+dokku mysql:info lolipop --exposed-ports
+dokku mysql:info lolipop --links
+dokku mysql:info lolipop --status
+dokku mysql:info lolipop --version
 
 # a mysql service can be linked to a
 # container this will use native docker
