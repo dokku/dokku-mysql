@@ -64,6 +64,7 @@ dokku mysql:info lolipop --config-dir
 dokku mysql:info lolipop --data-dir
 dokku mysql:info lolipop --dsn
 dokku mysql:info lolipop --exposed-ports
+dokku mysql:info lolipop --id
 dokku mysql:info lolipop --links
 dokku mysql:info lolipop --status
 dokku mysql:info lolipop --version
