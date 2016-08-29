@@ -21,6 +21,7 @@ mysql:clone <name> <new-name>  Create container <new-name> then copy data from <
 mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service with environment variables
 mysql:destroy <name>           Delete the service and stop its container if there are no links left
+mysql:enter <name> [command]   Enter a running couchdb service or run a command
 mysql:export <name> > <file>   Export a dump of the mysql service database
 mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
 mysql:import <name> < <file>   Import a dump into the mysql service database
@@ -70,6 +71,14 @@ dokku mysql:info lolipop --links
 dokku mysql:info lolipop --service-root
 dokku mysql:info lolipop --status
 dokku mysql:info lolipop --version
+
+# a bash prompt can be opened against a running service
+# filesystem changes will not be saved to disk
+dokku mysql:enter lolipop
+
+# you may also run a command directly against the service
+# filesystem changes will not be saved to disk
+dokku mysql:enter lolipop ls -lah /
 
 # a mysql service can be linked to a
 # container this will use native docker
