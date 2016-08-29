@@ -67,6 +67,7 @@ dokku mysql:info lolipop --exposed-ports
 dokku mysql:info lolipop --id
 dokku mysql:info lolipop --internal-ip
 dokku mysql:info lolipop --links
+dokku mysql:info lolipop --service-root
 dokku mysql:info lolipop --status
 dokku mysql:info lolipop --version
 
