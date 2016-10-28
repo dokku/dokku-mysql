@@ -171,3 +171,7 @@ OR
 - Unlink the service
 - Change MYSQL_DATABASE_SCHEME to the desired setting
 - Relink the service
+
+## Adding a custom my.cnf
+
+You can create a custom my.cnf by saving it to `/var/lib/dokku/services/mysql/APP_NAME/config/my.cnf` and restarting your database
