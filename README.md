@@ -17,6 +17,11 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 ## commands
 
 ```
+mysql:backup <name> <bucket>   Create a backup of the mysql service to an existing s3 bucket
+mysql:backup-auth <name> <aws_access_key_id> <aws_secret_access_key> Sets up authentication for backups on the mysql service
+mysql:backup-deauth <name>     Removes backup authentication for the mysql service
+mysql:backup-schedule <name> <schedule>  <aws_access_key_id> <aws_secret_access_key> <bucket> Schedules a backup of the mysql service
+mysql:backup-unschedule <name> Unschedules the backup of the mysql service
 mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service with environment variables
@@ -172,6 +177,27 @@ OR
 - Change MYSQL_DATABASE_SCHEME to the desired setting
 - Relink the service
 
-## Adding a custom my.cnf
+### Backups
+
+Backups can be performed using the backup commands:
+
+```
+# setup s3 backup authentication
+dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+
+# remove s3 authentication
+dokku mysql:backup-deauth lolipop
+
+# backup the `lolipop` service to the `BUCKET_NAME` bucket on AWS
+dokku mysql:backup lolipop BUCKET_NAME
+
+# schedule a backup
+dokku mysql:backup-schedule lolipop CRON_SCHEDULE BUCKET_NAME
+
+# remove the scheduled backup from cron
+dokku mysql:backup-unschedule lolipop
+```
+
+### Adding a custom my.cnf
 
 You can create a custom my.cnf by saving it to `/var/lib/dokku/services/mysql/APP_NAME/config/my.cnf` and restarting your database

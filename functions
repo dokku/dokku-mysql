@@ -116,9 +116,3 @@ service_url() {
   local SERVICE_ALIAS="$(service_alias "$SERVICE")"
   echo "$PLUGIN_SCHEME://mysql:$PASSWORD@$SERVICE_ALIAS:${PLUGIN_DATASTORE_PORTS[0]}/$SERVICE"
 }
-
-update_plugin_scheme_for_app() {
-  local APP="$1"
-  local MYSQL_DATABASE_SCHEME=$(config_get "$APP" MYSQL_DATABASE_SCHEME)
-  PLUGIN_SCHEME=${MYSQL_DATABASE_SCHEME:-$PLUGIN_SCHEME}
-}
