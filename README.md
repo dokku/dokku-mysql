@@ -20,7 +20,7 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 mysql:backup <name> <bucket>   Create a backup of the mysql service to an existing s3 bucket
 mysql:backup-auth <name> <aws_access_key_id> <aws_secret_access_key> Sets up authentication for backups on the mysql service
 mysql:backup-deauth <name>     Removes backup authentication for the mysql service
-mysql:backup-schedule <name> <schedule>  <aws_access_key_id> <aws_secret_access_key> <bucket> Schedules a backup of the mysql service
+mysql:backup-schedule <name> <schedule> <bucket> Schedules a backup of the mysql service
 mysql:backup-unschedule <name> Unschedules the backup of the mysql service
 mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <name>           Connect via mysql to a mysql service
@@ -196,6 +196,7 @@ dokku mysql:backup-deauth lolipop
 dokku mysql:backup lolipop BUCKET_NAME
 
 # schedule a backup
+# CRON_SCHEDULE is a crontab expression, eg. "0 3 * * *" for each day at 3am
 dokku mysql:backup-schedule lolipop CRON_SCHEDULE BUCKET_NAME
 
 # remove the scheduled backup from cron
