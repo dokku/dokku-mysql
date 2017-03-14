@@ -24,17 +24,21 @@ teardown() {
 @test "($PLUGIN_COMMAND_PREFIX:export) success with SSH_TTY" {
   export ECHO_DOCKER_COMMAND="true"
   export SSH_TTY=`tty`
-  run dokku "$PLUGIN_COMMAND_PREFIX:export" l
   password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  run dokku "$PLUGIN_COMMAND_PREFIX:export" l
   assert_exit_status 0
-  assert_output "docker exec dokku.mysql.l mysqldump --user=mysql --password=$password l"
+  assert_output "docker exec dokku.mysql.l bash -c printf '[client]\npassword=$password\n' > /root/credentials.cnf
+docker exec dokku.mysql.l mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql l
+docker exec dokku.mysql.l rm /root/credentials.cnf"
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:export) success without SSH_TTY" {
   export ECHO_DOCKER_COMMAND="true"
   unset SSH_TTY
-  run dokku "$PLUGIN_COMMAND_PREFIX:export" l
   password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  run dokku "$PLUGIN_COMMAND_PREFIX:export" l
   assert_exit_status 0
-  assert_output "docker exec dokku.mysql.l mysqldump --user=mysql --password=$password l"
+  assert_output "docker exec dokku.mysql.l bash -c printf '[client]\npassword=$password\n' > /root/credentials.cnf
+docker exec dokku.mysql.l mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql l
+docker exec dokku.mysql.l rm /root/credentials.cnf"
 }
