@@ -177,6 +177,16 @@ OR
 - Change MYSQL_DATABASE_SCHEME to the desired setting
 - Relink the service
 
+## Configuration
+
+It is possible to add custom configuration settings.
+`/etc/mysql/conf.d` is mapped to the output of `dokku mysql:info SERVICE --config-dir`
+
+Any files placed in this folder will be loaded. If a file is changed you will need
+to reload your database for the changes to take effect.
+
+For more information on configuration options see https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+
 ### Backups
 
 Datastore backups are supported via AWS S3 and S3 compatible services like [minio](https://github.com/minio/minio).
@@ -217,7 +227,3 @@ dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGI
 # more specific example for minio auth
 dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
 ```
-
-### Adding a custom my.cnf
-
-You can create a custom my.cnf by saving it to `/var/lib/dokku/services/mysql/APP_NAME/config/my.cnf` and restarting your database
