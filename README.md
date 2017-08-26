@@ -17,7 +17,7 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 ## commands
 
 ```
-mysql:backup <name> <bucket>   Create a backup of the mysql service to an existing s3 bucket
+mysql:backup <name> <bucket> [--use-iam] Create a backup of the mysql service to an existing s3 bucket
 mysql:backup-auth <name> <aws_access_key_id> <aws_secret_access_key> (<aws_default_region>) (<aws_signature_version>) (<endpoint_url>) Sets up authentication for backups on the mysql service
 mysql:backup-deauth <name>     Removes backup authentication for the mysql service
 mysql:backup-schedule <name> <schedule> <bucket> Schedules a backup of the mysql service
@@ -58,7 +58,7 @@ dokku mysql:create lolipop
 
 # you can also specify custom environment
 # variables to start the mysql service
-# in semi-colon separated forma
+# in semi-colon separated form
 export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
 dokku mysql:create lolipop
 
@@ -180,6 +180,10 @@ OR
 ### Backups
 
 Datastore backups are supported via AWS S3 and S3 compatible services like [minio](https://github.com/minio/minio).
+
+You may skip the `backup-auth` step if your dokku install is running within EC2
+and has access to the bucket via an IAM profile. In that case, use the `--use-iam`
+option with the `backup` command.
 
 Backups can be performed using the backup commands:
 
