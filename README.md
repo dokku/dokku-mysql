@@ -17,7 +17,7 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 ## commands
 
 ```
-mysql:backup <name> <bucket> [--use-iam] Create a backup of the mysql service to an existing s3 bucket
+mysql:backup <name> <bucket> (--use-iam) Create a backup of the mysql service to an existing s3 bucket
 mysql:backup-auth <name> <aws_access_key_id> <aws_secret_access_key> (<aws_default_region>) (<aws_signature_version>) (<endpoint_url>) Sets up authentication for backups on the mysql service
 mysql:backup-deauth <name>     Removes backup authentication for the mysql service
 mysql:backup-schedule <name> <schedule> <bucket> Schedules a backup of the mysql service
