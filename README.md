@@ -187,6 +187,8 @@ to reload your database for the changes to take effect.
 
 For more information on configuration options see https://dev.mysql.com/doc/refman/5.7/en/option-files.html
 
+> Note: This plugin mounts a host directory into the container under `/etc/mysql/conf.d`. Custom images that have files in this directory will have those files overwritten by the mount.
+
 ### Backups
 
 Datastore backups are supported via AWS S3 and S3 compatible services like [minio](https://github.com/minio/minio).
