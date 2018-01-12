@@ -34,6 +34,7 @@ mysql:expose <name> [port]     Expose a mysql service on custom port if provided
 mysql:import <name> < <file>   Import a dump into the mysql service database
 mysql:info <name>              Print the connection information
 mysql:link <name> <app>        Link the mysql service to the app
+mysql:linked <name> <app>      Check if the mysql service is linked to an app
 mysql:list                     List all mysql services
 mysql:logs <name> [-t]         Print the most recent log(s) for this service
 mysql:promote <name> <app>     Promote service <name> as DATABASE_URL in <app>
