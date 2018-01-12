@@ -29,6 +29,7 @@ mysql:connect <name>           Connect via mysql to a mysql service
 mysql:create <name>            Create a mysql service with environment variables
 mysql:destroy <name>           Delete the service, delete the data and stop its container if there are no links left
 mysql:enter <name> [command]   Enter or run a command in a running mysql service container
+mysql:exists <service>         Check if the MySQL service exists
 mysql:export <name> > <file>   Export a dump of the mysql service database
 mysql:expose <name> [port]     Expose a mysql service on custom port if provided (random port otherwise)
 mysql:import <name> < <file>   Import a dump into the mysql service database
