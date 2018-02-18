@@ -98,7 +98,7 @@ service_import() {
   local SERVICE="$1"
   SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   SERVICE_NAME="$(get_service_name "$SERVICE")"
-  ROOTPASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
+  ROOTPASSWORD="$(cat "$SERVICE_ROOT/ROOTPASSWORD")"
 
   if [[ -t 0 ]]; then
     dokku_log_fail "No data provided on stdin."
