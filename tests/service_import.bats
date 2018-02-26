@@ -31,7 +31,7 @@ teardown() {
 @test "($PLUGIN_COMMAND_PREFIX:import) success" {
   export ECHO_DOCKER_COMMAND="true"
   run dokku "$PLUGIN_COMMAND_PREFIX:import" l < "$PLUGIN_DATA_ROOT/fake.sql"
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
-  assert_output "docker exec -i dokku.mysql.l mysql --user=mysql --password=$password l"
+  password="$(cat "$PLUGIN_DATA_ROOT/l/ROOTPASSWORD")"
+  assert_output "docker exec -i dokku.mysql.l mysql --user=root --password=$password l"
 }
 
