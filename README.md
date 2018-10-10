@@ -46,6 +46,7 @@ mysql:start <name>             Start a previously stopped mysql service
 mysql:stop <name>              Stop a running mysql service
 mysql:unexpose <name>          Unexpose a previously exposed mysql service
 mysql:unlink <name> <app>      Unlink the mysql service from the app
+mysql:upgrade <name>           Upgrade service <service> to the specified version
 ```
 
 ## usage
