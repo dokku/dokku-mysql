@@ -23,7 +23,7 @@ mysql:backup-auth <name> <aws_access_key_id> <aws_secret_access_key> (<aws_defau
 mysql:backup-deauth <name>     Removes backup authentication for the mysql service
 mysql:backup-schedule <name> <schedule> <bucket> Schedules a backup of the mysql service
 mysql:backup-schedule-cat <name> Cat the contents of the configured backup cronfile for the service
-mysql:backup-set-encryption <name> <encryption_key> Sets up GPG encryption for future backups of the mysql service
+mysql:backup-set-encryption <name> <passphrase> Set a GPG passphrase for backups
 mysql:backup-unschedule <name> Unschedules the backup of the mysql service
 mysql:backup-unset-encryption <name> Removes backup encryption for future backups of the mysql service
 mysql:clone <name> <new-name>  Create container <new-name> then copy data from <name> into <new-name>
