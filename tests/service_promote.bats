@@ -2,15 +2,15 @@
 load test_helper
 
 setup() {
-  dokku "$PLUGIN_COMMAND_PREFIX:create" l >&2
-  dokku apps:create my_app >&2
+  dokku "$PLUGIN_COMMAND_PREFIX:create" l
+  dokku apps:create my_app
   dokku "$PLUGIN_COMMAND_PREFIX:link" l my_app
 }
 
 teardown() {
   dokku "$PLUGIN_COMMAND_PREFIX:unlink" l my_app
-  dokku --force "$PLUGIN_COMMAND_PREFIX:destroy" l >&2
-  rm -rf "$DOKKU_ROOT/my_app"
+  dokku --force "$PLUGIN_COMMAND_PREFIX:destroy" l
+  dokku --force apps:destroy my_app
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:promote) error when there are no arguments" {
@@ -39,7 +39,7 @@ teardown() {
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:promote) changes DATABASE_URL" {
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  password="$(sudo cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
   dokku config:set my_app "DATABASE_URL=mysql://u:p@host:3306/db" "DOKKU_MYSQL_BLUE_URL=mysql://mysql:$password@dokku-mysql-l:3306/l"
   dokku "$PLUGIN_COMMAND_PREFIX:promote" l my_app
   url=$(dokku config:get my_app DATABASE_URL)
@@ -47,7 +47,7 @@ teardown() {
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:promote) creates new config url when needed" {
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  password="$(sudo cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
   dokku config:set my_app "DATABASE_URL=mysql://u:p@host:3306/db" "DOKKU_MYSQL_BLUE_URL=mysql://mysql:$password@dokku-mysql-l:3306/l"
   dokku "$PLUGIN_COMMAND_PREFIX:promote" l my_app
   run dokku config my_app
@@ -55,7 +55,7 @@ teardown() {
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:promote) uses MYSQL_DATABASE_SCHEME variable" {
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
+  password="$(sudo cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
   dokku config:set my_app "MYSQL_DATABASE_SCHEME=mysql2" "DATABASE_URL=mysql://u:p@host:3306/db" "DOKKU_MYSQL_BLUE_URL=mysql2://mysql:$password@dokku-mysql-l:3306/l"
   dokku "$PLUGIN_COMMAND_PREFIX:promote" l my_app
   url=$(dokku config:get my_app DATABASE_URL)
