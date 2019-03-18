@@ -3,7 +3,7 @@ load test_helper
 
 setup() {
   dokku "$PLUGIN_COMMAND_PREFIX:create" l
-  echo "data" | tee "/tmp/fake.sql"
+  echo "CREATE DATABASE IF NOT EXISTS l;" | tee "/tmp/fake.sql"
 }
 
 teardown() {
