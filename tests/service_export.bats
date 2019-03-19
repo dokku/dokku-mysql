@@ -2,13 +2,11 @@
 load test_helper
 
 setup() {
-  export ECHO_DOCKER_COMMAND="false"
-  dokku "$PLUGIN_COMMAND_PREFIX:create" l >&2
+  dokku "$PLUGIN_COMMAND_PREFIX:create" l
 }
 
 teardown() {
-  export ECHO_DOCKER_COMMAND="false"
-  dokku --force "$PLUGIN_COMMAND_PREFIX:destroy" l >&2
+  dokku --force "$PLUGIN_COMMAND_PREFIX:destroy" l
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:export) error when there are no arguments" {
@@ -22,23 +20,17 @@ teardown() {
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:export) success with SSH_TTY" {
-  export ECHO_DOCKER_COMMAND="true"
   export SSH_TTY=`tty`
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
   run dokku "$PLUGIN_COMMAND_PREFIX:export" l
+  echo "output: $output"
+  echo "status: $status"
   assert_exit_status 0
-  assert_output "docker exec dokku.mysql.l bash -c printf '[client]\npassword=$password\n' > /root/credentials.cnf
-docker exec dokku.mysql.l mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql l
-docker exec dokku.mysql.l rm /root/credentials.cnf"
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:export) success without SSH_TTY" {
-  export ECHO_DOCKER_COMMAND="true"
   unset SSH_TTY
-  password="$(cat "$PLUGIN_DATA_ROOT/l/PASSWORD")"
   run dokku "$PLUGIN_COMMAND_PREFIX:export" l
+  echo "output: $output"
+  echo "status: $status"
   assert_exit_status 0
-  assert_output "docker exec dokku.mysql.l bash -c printf '[client]\npassword=$password\n' > /root/credentials.cnf
-docker exec dokku.mysql.l mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql l
-docker exec dokku.mysql.l rm /root/credentials.cnf"
 }
