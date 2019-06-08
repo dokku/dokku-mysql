@@ -13,11 +13,12 @@ service_connect() {
   local SERVICE="$1"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
+  local DATABASE_NAME="$(get_database_name "$SERVICE")"
   local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
   local SERVICE_TTY_OPTS
   has_tty && SERVICE_TTY_OPTS="-t"
 
-  docker exec -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$SERVICE"
+  docker exec -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$DATABASE_NAME"
 }
 
 service_create() {
@@ -67,6 +68,8 @@ service_create() {
   else
     echo "" >"$SERVICE_ROOT/ENV"
   fi
+
+  write_database_name "$SERVICE"
   service_create_container "$SERVICE"
 }
 
@@ -77,8 +80,9 @@ service_create_container() {
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
   local ROOTPASSWORD="$(cat "$SERVICE_ROOT/ROOTPASSWORD")"
   local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
+  local DATABASE_NAME="$(get_database_name "$SERVICE")"
 
-  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$SERVICE" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
   echo "$ID" >"$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
@@ -92,11 +96,12 @@ service_export() {
   local SERVICE="$1"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
+  local DATABASE_NAME="$(get_database_name "$SERVICE")"
   local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
 
   [[ -n $SSH_TTY ]] && stty -opost
   docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql "$SERVICE"
+  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql "$DATABASE_NAME"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
@@ -108,12 +113,13 @@ service_import() {
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
   local SERVICE_HOST_ROOT="$PLUGIN_DATA_HOST_ROOT/$SERVICE"
+  local DATABASE_NAME="$(get_database_name "$SERVICE")"
   local ROOTPASSWORD="$(cat "$SERVICE_ROOT/ROOTPASSWORD")"
 
   if [[ -t 0 ]]; then
     dokku_log_fail "No data provided on stdin."
   fi
-  docker exec -i "$SERVICE_NAME" mysql --user=root --password="$ROOTPASSWORD" "$SERVICE"
+  docker exec -i "$SERVICE_NAME" mysql --user=root --password="$ROOTPASSWORD" "$DATABASE_NAME"
 }
 
 service_start() {
@@ -146,7 +152,8 @@ service_start() {
 service_url() {
   local SERVICE="$1"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
-  local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
   local SERVICE_DNS_HOSTNAME="$(service_dns_hostname "$SERVICE")"
-  echo "$PLUGIN_SCHEME://mysql:$PASSWORD@$SERVICE_DNS_HOSTNAME:${PLUGIN_DATASTORE_PORTS[0]}/$SERVICE"
+  local DATABASE_NAME="$(get_database_name "$SERVICE")"
+  local PASSWORD="$(cat "$SERVICE_ROOT/PASSWORD")"
+  echo "$PLUGIN_SCHEME://mysql:$PASSWORD@$SERVICE_DNS_HOSTNAME:${PLUGIN_DATASTORE_PORTS[0]}/$DATABASE_NAME"
 }
