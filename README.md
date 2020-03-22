@@ -76,6 +76,7 @@ dokku mysql:info lolipop
 dokku mysql:info lolipop --config-dir
 dokku mysql:info lolipop --data-dir
 dokku mysql:info lolipop --dsn
+dokku mysql:info lolipop --exposed-dsn
 dokku mysql:info lolipop --exposed-ports
 dokku mysql:info lolipop --id
 dokku mysql:info lolipop --internal-ip
@@ -228,16 +229,36 @@ dokku mysql:backup-unschedule lolipop
 ```
 
 Backup auth can also be set up for different regions, signature versions and endpoints (e.g. for minio):
- 
+
 ```
 # setup s3 backup authentication with different region
 dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION
- 
+
 # setup s3 backup authentication with different signature version and endpoint
 dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SIGNATURE_VERSION ENDPOINT_URL
- 
+
 # more specific example for minio auth
 dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
+```
+
+## Exposed DSN
+
+```shell
+# expose the database (you must open the exposed port on your firewall if you have one)
+dokku mysql:expose lolipop
+# exposed dsn available on service info
+dokku mysql:info lolipop
+=====> Container Information
+       ...
+       Exposed dsn:         mysql://mysql:SOME_PASSWORD@dokku.me:28804/lolipop
+       Exposed ports:       3306->28804
+       ...
+```
+
+So now you connect to your database with [`mysqlsh`](https://dev.mysql.com/doc/mysql-shell/8.0/en/mysqlsh.html#option_mysqlsh_uri) or with your favorite client.
+
+```shell
+mysqlsh --uri=$(ssh dokku@dokku.me mysql:info lolipop --exposed-dsn)
 ```
 
 ## Disabling `docker pull` calls
