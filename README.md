@@ -35,7 +35,7 @@ mysql:exists <service>                             # check if the mysql service 
 mysql:export <service>                             # export a dump of the mysql service database
 mysql:expose <service> <ports...>                  # expose a mysql service on custom port if provided (random port otherwise)
 mysql:import <service>                             # import a dump into the mysql service database
-mysql:info <service> [--single-info-flag]          # print the connection information
+mysql:info <service> [--single-info-flag]          # print the service information
 mysql:link <service> <app> [--link-flags...]       # link the mysql service to the app
 mysql:linked <service> <app>                       # check if the mysql service is linked to an app
 mysql:links <service>                              # list all apps linked to the mysql service
@@ -55,20 +55,7 @@ mysql:upgrade <service> [--upgrade-flags...]       # upgrade service <service> t
 Help for any commands can be displayed by specifying the command as an argument to mysql:help. Please consult the `mysql:help` command for any undocumented commands.
 
 ### Basic Usage
-### list all mysql services
 
-```shell
-# usage
-dokku mysql:list 
-```
-
-examples:
-
-List all services:
-
-```shell
-dokku mysql:list
-```
 ### create a mysql service
 
 ```shell
@@ -76,15 +63,13 @@ dokku mysql:list
 dokku mysql:create <service> [--create-flags...]
 ```
 
-examples:
-
 Create a mysql service named lolipop:
 
 ```shell
 dokku mysql:create lolipop
 ```
 
-You can also specify the image and image version to use for the service. It *must* be compatible with the ${plugin_image} image. :
+You can also specify the image and image version to use for the service. It *must* be compatible with the ${plugin_image} image.
 
 ```shell
 export DATABASE_IMAGE="${PLUGIN_IMAGE}"
@@ -92,20 +77,19 @@ export DATABASE_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
 dokku mysql:create lolipop
 ```
 
-You can also specify custom environment variables to start the mysql service in semi-colon separated form. :
+You can also specify custom environment variables to start the mysql service in semi-colon separated form.
 
 ```shell
 export DATABASE_CUSTOM_ENV="USER=alpha;HOST=beta"
 dokku mysql:create lolipop
 ```
-### print the connection information
+
+### print the service information
 
 ```shell
 # usage
 dokku mysql:info <service> [--single-info-flag]
 ```
-
-examples:
 
 Get connection information as follows:
 
@@ -127,14 +111,26 @@ dokku mysql:info lolipop --service-root
 dokku mysql:info lolipop --status
 dokku mysql:info lolipop --version
 ```
+
+### list all mysql services
+
+```shell
+# usage
+dokku mysql:list 
+```
+
+List all services:
+
+```shell
+dokku mysql:list
+```
+
 ### print the most recent log(s) for this service
 
 ```shell
 # usage
 dokku mysql:logs <service> [-t|--tail]
 ```
-
-examples:
 
 You can tail logs for a particular service:
 
@@ -147,6 +143,7 @@ By default, logs will not be tailed, but you can do this with the --tail flag:
 ```shell
 dokku mysql:logs lolipop --tail
 ```
+
 ### link the mysql service to the app
 
 ```shell
@@ -154,9 +151,7 @@ dokku mysql:logs lolipop --tail
 dokku mysql:link <service> <app> [--link-flags...]
 ```
 
-examples:
-
-A mysql service can be linked to a container. This will use native docker links via the docker-options plugin. Here we link it to our 'playground' app. :
+A mysql service can be linked to a container. This will use native docker links via the docker-options plugin. Here we link it to our 'playground' app.
 
 > NOTE: this will restart your app
 
@@ -187,7 +182,7 @@ The host exposed here only works internally in docker containers. If you want yo
 dokku mysql:link other_service playground
 ```
 
-It is possible to change the protocol for database_url by setting the environment variable database_database_scheme on the app. Doing so will after linking will cause the plugin to think the service is not linked, and we advise you to unlink before proceeding. :
+It is possible to change the protocol for database_url by setting the environment variable database_database_scheme on the app. Doing so will after linking will cause the plugin to think the service is not linked, and we advise you to unlink before proceeding.
 
 ```shell
 dokku config:set playground DATABASE_DATABASE_SCHEME=mysql2
@@ -199,6 +194,7 @@ This will cause database_url to be set as:
 ```
 mysql2://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 ```
+
 ### unlink the mysql service from the app
 
 ```shell
@@ -206,28 +202,12 @@ mysql2://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 dokku mysql:unlink <service> <app>
 ```
 
-examples:
-
 You can unlink a mysql service:
 
 > NOTE: this will restart your app and unset related environment variables
 
 ```shell
 dokku mysql:unlink lolipop playground
-```
-### delete the mysql service/data/container if there are no links left
-
-```shell
-# usage
-dokku mysql:destroy <service> [-f|--force]
-```
-
-examples:
-
-Destroy the service, it's data, and the running container:
-
-```shell
-dokku mysql:destroy lolipop
 ```
 
 ### Service Lifecycle
@@ -241,13 +221,12 @@ The lifecycle of each service can be managed through the following commands:
 dokku mysql:connect <service>
 ```
 
-examples:
-
 Connect to the service via the mysql connection tool:
 
 ```shell
 dokku mysql:connect lolipop
 ```
+
 ### enter or run a command in a running mysql service container
 
 ```shell
@@ -255,19 +234,18 @@ dokku mysql:connect lolipop
 dokku mysql:enter <service>
 ```
 
-examples:
-
-A bash prompt can be opened against a running service. Filesystem changes will not be saved to disk. :
+A bash prompt can be opened against a running service. Filesystem changes will not be saved to disk.
 
 ```shell
 dokku mysql:enter lolipop
 ```
 
-You may also run a command directly against the service. Filesystem changes will not be saved to disk. :
+You may also run a command directly against the service. Filesystem changes will not be saved to disk.
 
 ```shell
 dokku mysql:enter lolipop touch /tmp/test
 ```
+
 ### expose a mysql service on custom port if provided (random port otherwise)
 
 ```shell
@@ -275,13 +253,12 @@ dokku mysql:enter lolipop touch /tmp/test
 dokku mysql:expose <service> <ports...>
 ```
 
-examples:
-
 Expose the service on the service's normal ports, allowing access to it from the public interface (0. 0. 0. 0):
 
 ```shell
 dokku mysql:expose lolipop ${PLUGIN_DATASTORE_PORTS[@]}
 ```
+
 ### unexpose a previously exposed mysql service
 
 ```shell
@@ -289,21 +266,18 @@ dokku mysql:expose lolipop ${PLUGIN_DATASTORE_PORTS[@]}
 dokku mysql:unexpose <service>
 ```
 
-examples:
-
 Unexpose the service, removing access to it from the public interface (0. 0. 0. 0):
 
 ```shell
 dokku mysql:unexpose lolipop
 ```
+
 ### promote service <service> as DATABASE_URL in <app>
 
 ```shell
 # usage
 dokku mysql:promote <service> <app>
 ```
-
-examples:
 
 If you have a mysql service linked to an app and try to link another mysql service another link environment variable will be generated automatically:
 
@@ -326,20 +300,7 @@ DATABASE_URL=mysql://other_service:ANOTHER_PASSWORD@dokku-mysql-other-service:33
 DOKKU_DATABASE_BLUE_URL=mysql://other_service:ANOTHER_PASSWORD@dokku-mysql-other-service:3306/other_service
 DOKKU_DATABASE_SILVER_URL=mysql://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 ```
-### graceful shutdown and restart of the mysql service container
 
-```shell
-# usage
-dokku mysql:restart <service>
-```
-
-examples:
-
-Restart the service:
-
-```shell
-dokku mysql:restart lolipop
-```
 ### start a previously stopped mysql service
 
 ```shell
@@ -347,13 +308,12 @@ dokku mysql:restart lolipop
 dokku mysql:start <service>
 ```
 
-examples:
-
 Start the service:
 
 ```shell
 dokku mysql:start lolipop
 ```
+
 ### stop a running mysql service
 
 ```shell
@@ -361,21 +321,31 @@ dokku mysql:start lolipop
 dokku mysql:stop <service>
 ```
 
-examples:
-
 Stop the service and the running container:
 
 ```shell
 dokku mysql:stop lolipop
 ```
+
+### graceful shutdown and restart of the mysql service container
+
+```shell
+# usage
+dokku mysql:restart <service>
+```
+
+Restart the service:
+
+```shell
+dokku mysql:restart lolipop
+```
+
 ### upgrade service <service> to the specified versions
 
 ```shell
 # usage
 dokku mysql:upgrade <service> [--upgrade-flags...]
 ```
-
-examples:
 
 You can upgrade an existing service to a new image or image-version:
 
@@ -394,13 +364,12 @@ Service scripting can be executed using the following commands:
 dokku mysql:app-links <app>
 ```
 
-examples:
-
-List all mysql services that are linked to the 'playground' app. :
+List all mysql services that are linked to the 'playground' app.
 
 ```shell
 dokku mysql:app-links playground
 ```
+
 ### create container <new-name> then copy data from <name> into <new-name>
 
 ```shell
@@ -408,13 +377,12 @@ dokku mysql:app-links playground
 dokku mysql:clone <service> <new-service> [--clone-flags...]
 ```
 
-examples:
-
 You can clone an existing service to a new one:
 
 ```shell
 dokku mysql:clone lolipop lolipop-2
 ```
+
 ### check if the mysql service exists
 
 ```shell
@@ -422,13 +390,12 @@ dokku mysql:clone lolipop lolipop-2
 dokku mysql:exists <service>
 ```
 
-examples:
-
-Here we check if the lolipop mysql service exists. :
+Here we check if the lolipop mysql service exists.
 
 ```shell
 dokku mysql:exists lolipop
 ```
+
 ### check if the mysql service is linked to an app
 
 ```shell
@@ -436,13 +403,12 @@ dokku mysql:exists lolipop
 dokku mysql:linked <service> <app>
 ```
 
-examples:
-
-Here we check if the lolipop mysql service is linked to the 'playground' app. :
+Here we check if the lolipop mysql service is linked to the 'playground' app.
 
 ```shell
 dokku mysql:linked lolipop playground
 ```
+
 ### list all apps linked to the mysql service
 
 ```shell
@@ -450,9 +416,7 @@ dokku mysql:linked lolipop playground
 dokku mysql:links <service>
 ```
 
-examples:
-
-List all apps linked to the 'lolipop' mysql service. :
+List all apps linked to the 'lolipop' mysql service.
 
 ```shell
 dokku mysql:links lolipop
@@ -469,21 +433,18 @@ The underlying service data can be imported and exported with the following comm
 dokku mysql:import <service>
 ```
 
-examples:
-
 Import a datastore dump:
 
 ```shell
 dokku mysql:import lolipop < database.dump
 ```
+
 ### export a dump of the mysql service database
 
 ```shell
 # usage
 dokku mysql:export <service>
 ```
-
-examples:
 
 By default, datastore output is exported to stdout:
 
@@ -512,8 +473,6 @@ Backups can be performed using the backup commands:
 dokku mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <aws-default-region> <aws-signature-version> <endpoint-url>
 ```
 
-examples:
-
 Setup s3 backup authentication:
 
 ```shell
@@ -537,6 +496,7 @@ More specific example for minio auth:
 ```shell
 dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
 ```
+
 ### removes backup authentication for the mysql service
 
 ```shell
@@ -544,13 +504,12 @@ dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-e
 dokku mysql:backup-deauth <service>
 ```
 
-examples:
-
 Remove s3 authentication:
 
 ```shell
 dokku mysql:backup-deauth lolipop
 ```
+
 ### creates a backup of the mysql service to an existing s3 bucket
 
 ```shell
@@ -558,13 +517,12 @@ dokku mysql:backup-deauth lolipop
 dokku mysql:backup <service> <bucket-name> [--use-iam]
 ```
 
-examples:
-
 Backup the 'lolipop' service to the 'my-s3-bucket' bucket on aws:
 
 ```shell
 dokku mysql:backup lolipop my-s3-bucket --use-iam
 ```
+
 ### sets encryption for all future backups of mysql service
 
 ```shell
@@ -572,13 +530,12 @@ dokku mysql:backup lolipop my-s3-bucket --use-iam
 dokku mysql:backup-set-encryption <service> <passphrase>
 ```
 
-examples:
-
 Set a gpg passphrase for backups:
 
 ```shell
 dokku mysql:backup-set-encryption lolipop
 ```
+
 ### unsets encryption for future backups of the mysql service
 
 ```shell
@@ -586,21 +543,18 @@ dokku mysql:backup-set-encryption lolipop
 dokku mysql:backup-unset-encryption <service>
 ```
 
-examples:
-
 Unset a gpg encryption key for backups:
 
 ```shell
 dokku mysql:backup-unset-encryption lolipop
 ```
+
 ### schedules a backup of the mysql service
 
 ```shell
 # usage
 dokku mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam]
 ```
-
-examples:
 
 Schedule a backup:
 
@@ -615,6 +569,7 @@ Schedule a backup and authenticate via iam:
 ```shell
 dokku mysql:backup-schedule lolipop "0 3 * * *" my-s3-bucket --use-iam
 ```
+
 ### cat the contents of the configured backup cronfile for the service
 
 ```shell
@@ -622,21 +577,18 @@ dokku mysql:backup-schedule lolipop "0 3 * * *" my-s3-bucket --use-iam
 dokku mysql:backup-schedule-cat <service>
 ```
 
-examples:
-
 Cat the contents of the configured backup cronfile for the service:
 
 ```shell
 dokku mysql:backup-schedule-cat lolipop
 ```
+
 ### unschedules the backup of the mysql service
 
 ```shell
 # usage
 dokku mysql:backup-unschedule <service>
 ```
-
-examples:
 
 Remove the scheduled backup from cron:
 
