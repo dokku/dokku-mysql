@@ -1,4 +1,4 @@
-# dokku mysql [![Build Status](https://img.shields.io/travis/dokku/dokku-mysql.svg?branch=master "Build Status")](https://travis-ci.org/dokku/dokku-mysql) [![IRC Network](https://img.shields.io/badge/irc-freenode-blue.svg "IRC Freenode")](https://webchat.freenode.net/?channels=dokku)
+# dokku mysql [![Build Status](https://img.shields.io/circleci/project/github/dokku/dokku-mysql.svg?branch=master&style=flat-square "Build Status")](https://circleci.com/gh/dokku/dokku-mysql/tree/master) [![IRC Network](https://img.shields.io/badge/irc-freenode-blue.svg?style=flat-square "IRC Freenode")](https://webchat.freenode.net/?channels=dokku)
 
 Official mysql plugin for dokku. Currently defaults to installing [mysql 5.7.28](https://hub.docker.com/_/mysql/).
 
