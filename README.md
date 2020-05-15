@@ -530,7 +530,7 @@ dokku mysql:backup lolipop my-s3-bucket --use-iam
 dokku mysql:backup-set-encryption <service> <passphrase>
 ```
 
-Set a gpg passphrase for backups:
+Set the gpg-compatible passphrase for encrypting backups for backups:
 
 ```shell
 dokku mysql:backup-set-encryption lolipop
@@ -543,7 +543,7 @@ dokku mysql:backup-set-encryption lolipop
 dokku mysql:backup-unset-encryption <service>
 ```
 
-Unset a gpg encryption key for backups:
+Unset the gpg encryption passphrase for backups:
 
 ```shell
 dokku mysql:backup-unset-encryption lolipop
