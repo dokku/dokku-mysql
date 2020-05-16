@@ -43,11 +43,11 @@ service_create() {
 
   mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
   mkdir -p "$SERVICE_ROOT/data" || dokku_log_fail "Unable to create service data directory"
-  mkdir -p "$SERVICE_ROOT/config" || dokku_log_fail "Unable to create service config directory"
+  mkdir -p "$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX" || dokku_log_fail "Unable to create service config directory"
   touch "$LINKS_FILE"
 
-  echo -e "[mysqld]\nperformance_schema = 0" >"$SERVICE_ROOT/config/disable_performance_schema.cnf"
-  echo -e "[mysqld]\ncharacter-set-server = utf8\ncollation-server = utf8_general_ci" >"$SERVICE_ROOT/config/charset_utf8.cnf"
+  echo -e "[mysqld]\nperformance_schema = 0" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/disable_performance_schema.cnf"
+  echo -e "[mysqld]\ncharacter-set-server = utf8\ncollation-server = utf8_general_ci" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/charset_utf8.cnf"
   ROOTPASSWORD=$(openssl rand -hex 8)
   PASSWORD=$(openssl rand -hex 8)
   if [[ -n "$SERVICE_PASSWORD" ]]; then
@@ -82,7 +82,7 @@ service_create_container() {
   local PASSWORD="$(service_password "$SERVICE")"
   local DATABASE_NAME="$(get_database_name "$SERVICE")"
 
-  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
   echo "$ID" >"$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
