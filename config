@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-_DIR="$(dirname $0)"
-export MYSQL_IMAGE=${MYSQL_IMAGE:="$(awk -F '[ :]' '{print $2}' $_DIR/Dockerfile)"}
-export MYSQL_IMAGE_VERSION=${MYSQL_IMAGE_VERSION:="$(awk -F '[ :]' '{print $3}' $_DIR/Dockerfile)"}
+_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export MYSQL_IMAGE=${MYSQL_IMAGE:="$(awk -F '[ :]' '{print $2}' "${_DIR}/Dockerfile")"}
+export MYSQL_IMAGE_VERSION=${MYSQL_IMAGE_VERSION:="$(awk -F '[ :]' '{print $3}' "${_DIR}/Dockerfile")"}
 export MYSQL_ROOT=${MYSQL_ROOT:="$DOKKU_LIB_ROOT/services/mysql"}
 export MYSQL_HOST_ROOT=${MYSQL_HOST_ROOT:=$MYSQL_ROOT}
 
