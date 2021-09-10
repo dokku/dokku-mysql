@@ -99,13 +99,13 @@ service_export() {
   local SERVICE="$1"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
-  local DATABASE_NAME="$(get_database_name "$SERVICE")"
-  local PASSWORD="$(service_password "$SERVICE")"
+  local ROOTPASSWORD="$(service_root_password "$SERVICE")"
 
   [[ -n $SSH_TTY ]] && stty -opost
-  docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --quick  "$DATABASE_NAME"
-  docker exec "$SERVICE_NAME" rm /root/credentials.cnf
+  docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
+  docker exec "$SERVICE_NAME" bash -c "printf 'show databases;' | mysql --defaults-extra-file=/root/credentials.cnf --user=root | grep -wvE 'Database|mysql|sys|information_schema|performance_schema' > databases_to_backup"
+  docker exec "$SERVICE_NAME" bash -c "cat databases_to_backup | xargs mysqldump --defaults-extra-file=/root/credentials.cnf --user=root --single-transaction --quick --databases"
+  docker exec "$SERVICE_NAME" rm /root/credentials.cnf databases_to_backup
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
   exit $status
