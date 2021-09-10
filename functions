@@ -123,11 +123,9 @@ service_import() {
     dokku_log_fail "No data provided on stdin."
   fi
 
-  [[ -n $SSH_TTY ]] && stty -opost
   docker exec "$SERVICE_NAME" bash -c "printf '[client]\nuser=root\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
   docker exec -i "$SERVICE_NAME" mysql --defaults-extra-file=/root/credentials.cnf "$DATABASE_NAME"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf
-  [[ -n $SSH_TTY ]] && stty opost
 }
 
 service_start() {
