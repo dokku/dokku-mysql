@@ -102,9 +102,9 @@ service_export() {
   local ROOTPASSWORD="$(service_root_password "$SERVICE")"
 
   [[ -n $SSH_TTY ]] && stty -opost
-  docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
-  docker exec "$SERVICE_NAME" bash -c "printf 'show databases;' | mysql --user=root --defaults-extra-file=/root/credentials.cnf | grep -wvE 'Database|mysql|sys|information_schema|performance_schema' > databases_to_backup"
-  docker exec "$SERVICE_NAME" bash -c "cat databases_to_backup | xargs mysqldump --user=root --defaults-extra-file=/root/credentials.cnf --single-transaction --quick --databases"
+  docker exec "$SERVICE_NAME" bash -c "printf '[client]\nuser=root\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
+  docker exec "$SERVICE_NAME" bash -c "printf 'show databases;' | mysql --defaults-extra-file=/root/credentials.cnf | grep -wvE 'Database|mysql|sys|information_schema|performance_schema' > databases_to_backup"
+  docker exec "$SERVICE_NAME" bash -c "cat databases_to_backup | xargs mysqldump --defaults-extra-file=/root/credentials.cnf --single-transaction --quick --databases"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf databases_to_backup
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
@@ -124,11 +124,10 @@ service_import() {
   fi
 
   [[ -n $SSH_TTY ]] && stty -opost
-  docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
+  docker exec "$SERVICE_NAME" bash -c "printf '[client]\nuser=root\npassword=$ROOTPASSWORD\n' > /root/credentials.cnf"
+  docker exec -i "$SERVICE_NAME" mysql --defaults-extra-file=/root/credentials.cnf "$DATABASE_NAME"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf
   [[ -n $SSH_TTY ]] && stty opost
-
-  docker exec -i "$SERVICE_NAME" mysql --user=root --defaults-extra-file=/root/credentials.cnf "$DATABASE_NAME"
 }
 
 service_start() {
