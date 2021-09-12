@@ -33,7 +33,7 @@ mysql:destroy <service> [-f|--force]               # delete the mysql service/da
 mysql:enter <service>                              # enter or run a command in a running mysql service container
 mysql:exists <service>                             # check if the mysql service exists
 mysql:export <service>                             # export a dump of the mysql service database
-mysql:expose <service> <ports...>                  # expose a mysql service on custom port if provided (random port otherwise)
+mysql:expose <service> <ports...>                  # expose a mysql service on custom host:port if provided (random port on the 0.0.0.0 interface if otherwise unspecified)
 mysql:import <service>                             # import a dump into the mysql service database
 mysql:info <service> [--single-info-flag]          # print the service information
 mysql:link <service> <app> [--link-flags...]       # link the mysql service to the app
@@ -276,7 +276,7 @@ You may also run a command directly against the service. Filesystem changes will
 dokku mysql:enter lolipop touch /tmp/test
 ```
 
-### expose a mysql service on custom port if provided (random port otherwise)
+### expose a mysql service on custom host:port if provided (random port on the 0.0.0.0 interface if otherwise unspecified)
 
 ```shell
 # usage
@@ -287,6 +287,12 @@ Expose the service on the service's normal ports, allowing access to it from the
 
 ```shell
 dokku mysql:expose lolipop 3306
+```
+
+Expose the service on the service's normal ports, with the first on a specified ip adddress (127.0.0.1):
+
+```shell
+dokku mysql:expose lolipop 127.0.0.1:3306
 ```
 
 ### unexpose a previously exposed mysql service
