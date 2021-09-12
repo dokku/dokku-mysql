@@ -87,7 +87,7 @@ service_create_container() {
   local MEMORY_LIMIT=""
 
   if [[ ! -z "$SERVICE_MEMORY" ]]; then
-    MEMORY_LIMIT="--memory=${SERVICE_MEMORY}"
+    MEMORY_LIMIT="--memory=${SERVICE_MEMORY}m"
   fi
   
   ID=$(docker run --name "$SERVICE_NAME" "$MEMORY_LIMIT" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
