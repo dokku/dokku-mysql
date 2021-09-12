@@ -76,10 +76,10 @@ fn-help-contents() {
 
 fn-help-contents-subcommand() {
   declare SUBCOMMAND="$1" FULL_OUTPUT="$2"
-  local TMPDIR=$(mktemp -d)
-  local UNCLEAN_FILE="${TMPDIR}/cmd-unclean" CLEAN_FILE="${TMPDIR}/cmd-clean"
+  local HELP_TMPDIR=$(mktemp -d --tmpdir)
+  local UNCLEAN_FILE="${HELP_TMPDIR}/cmd-unclean" CLEAN_FILE="${HELP_TMPDIR}/cmd-clean"
   local BOLD CMD_OUTPUT CYAN EXAMPLE LIGHT_GRAY NORMAL
-  trap 'rm -rf "$TMPDIR" > /dev/null' RETURN INT TERM EXIT
+  trap 'rm -rf "$HELP_TMPDIR" > /dev/null' RETURN INT TERM EXIT
 
   rm -rf "$UNCLEAN_FILE" "$CLEAN_FILE"
   cat "$SUBCOMMAND_ROOT/$SUBCOMMAND" >"$UNCLEAN_FILE"
@@ -164,8 +164,8 @@ fn-help-list-example() {
   # shellcheck disable=SC2034
   declare desc="return $PLUGIN_COMMAND_PREFIX plugin help content"
   cat <<help_list
-      NAME, VERSION, STATUS, EXPOSED PORTS, LINKS
-      service-name, $PLUGIN_COMMAND_PREFIX:$PLUGIN_IMAGE_VERSION, running, -, app-name
+      $PLUGIN_SERVICE services
+      service-name
 help_list
 }
 
@@ -191,7 +191,7 @@ fn-help-subcommand-args() {
     if [[ "$arg" == *_FLAG ]]; then
       arg="${arg/_FLAG/}"
       if [[ $arg == "INFO" ]]; then
-        arg="SINGLE_INFO_FLAG..."
+        arg="SINGLE_INFO_FLAG"
         args+=" ${BLUE}[--${arg//_/-}]${NORMAL}"
       else
         args+=" ${BLUE}[-${arg:0:1}|--${arg//_/-}]${NORMAL}"

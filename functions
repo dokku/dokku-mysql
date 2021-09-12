@@ -41,13 +41,14 @@ service_create() {
     docker pull "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" || dokku_log_fail "$PLUGIN_SERVICE image $PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION pull failed"
   fi
 
+  plugn trigger service-action pre-create "$SERVICE"
   mkdir -p "$SERVICE_ROOT" || dokku_log_fail "Unable to create service directory"
   mkdir -p "$SERVICE_ROOT/data" || dokku_log_fail "Unable to create service data directory"
-  mkdir -p "$SERVICE_ROOT/config" || dokku_log_fail "Unable to create service config directory"
+  mkdir -p "$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX" || dokku_log_fail "Unable to create service config directory"
   touch "$LINKS_FILE"
 
-  echo -e "[mysqld]\nperformance_schema = 0" >"$SERVICE_ROOT/config/disable_performance_schema.cnf"
-  echo -e "[mysqld]\ncharacter-set-server = utf8\ncollation-server = utf8_general_ci" >"$SERVICE_ROOT/config/charset_utf8.cnf"
+  echo -e "[mysqld]\nperformance_schema = 0" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/disable_performance_schema.cnf"
+  echo -e "[mysqld]\ncharacter-set-server = utf8\ncollation-server = utf8_general_ci" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/charset_utf8.cnf"
   ROOTPASSWORD=$(openssl rand -hex 8)
   PASSWORD=$(openssl rand -hex 8)
   if [[ -n "$SERVICE_PASSWORD" ]]; then
@@ -69,8 +70,14 @@ service_create() {
     echo "" >"$SERVICE_ROOT/ENV"
   fi
 
+  if [[ -n "$SERVICE_MEMORY" ]]; then
+    echo "$SERVICE_MEMORY" >"$SERVICE_ROOT/SERVICE_MEMORY"
+  fi
+
   write_database_name "$SERVICE"
+  plugn trigger service-action post-create "$SERVICE"
   service_create_container "$SERVICE"
+  plugn trigger service-action post-create-complete "$SERVICE"
 }
 
 service_create_container() {
@@ -81,12 +88,18 @@ service_create_container() {
   local ROOTPASSWORD="$(service_root_password "$SERVICE")"
   local PASSWORD="$(service_password "$SERVICE")"
   local DATABASE_NAME="$(get_database_name "$SERVICE")"
+  local MEMORY_LIMIT=""
 
-  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/config:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+  if [[ -n "$SERVICE_MEMORY" ]]; then
+    MEMORY_LIMIT="--memory=${SERVICE_MEMORY}m"
+  fi
+
+  # shellcheck disable=SC2086
+  ID=$(docker run --name "$SERVICE_NAME" $MEMORY_LIMIT -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
   echo "$ID" >"$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
-  docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" dokku/wait:0.4.1 -p "$PLUGIN_DATASTORE_WAIT_PORT" >/dev/null
+  docker run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" "$PLUGIN_WAIT_IMAGE" -p "$PLUGIN_DATASTORE_WAIT_PORT" >/dev/null
 
   dokku_log_info2 "$PLUGIN_SERVICE container created: $SERVICE"
   service_info "$SERVICE"
@@ -101,7 +114,7 @@ service_export() {
 
   [[ -n $SSH_TTY ]] && stty -opost
   docker exec "$SERVICE_NAME" bash -c "printf '[client]\ndefault-character-set=utf8mb4\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql "$DATABASE_NAME"
+  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --quick "$DATABASE_NAME"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
@@ -149,7 +162,11 @@ service_start() {
   elif service_image_exists "$SERVICE" && [[ -n "$ROOTPASSWORD" ]] && [[ -n "$PASSWORD" ]]; then
     service_create_container "$SERVICE"
   else
-    dokku_log_verbose_quiet "Neither container nor valid configuration exists for $SERVICE"
+    if ! service_image_exists "$SERVICE"; then
+      dokku_log_verbose_quiet "Missing image $PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION for $SERVICE"
+    else
+      dokku_log_verbose_quiet "Neither container nor valid configuration exists for $SERVICE"
+    fi
   fi
 }
 
