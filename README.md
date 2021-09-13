@@ -499,7 +499,7 @@ dokku mysql:import <service>
 Import a datastore dump:
 
 ```shell
-dokku mysql:import lollipop < database.dump
+dokku mysql:import lollipop < data.dump
 ```
 
 ### export a dump of the mysql service database
@@ -518,7 +518,7 @@ dokku mysql:export lollipop
 You can redirect this output to a file:
 
 ```shell
-dokku mysql:export lollipop > lollipop.dump
+dokku mysql:export lollipop > data.dump
 ```
 
 ### Backups
