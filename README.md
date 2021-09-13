@@ -82,15 +82,15 @@ dokku mysql:create lolipop
 You can also specify the image and image version to use for the service. It *must* be compatible with the mysql image.
 
 ```shell
-export DATABASE_IMAGE="mysql"
-export DATABASE_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
+export MYSQL_IMAGE="mysql"
+export MYSQL_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
 dokku mysql:create lolipop
 ```
 
 You can also specify custom environment variables to start the mysql service in semi-colon separated form.
 
 ```shell
-export DATABASE_CUSTOM_ENV="USER=alpha;HOST=beta"
+export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
 dokku mysql:create lolipop
 ```
 
