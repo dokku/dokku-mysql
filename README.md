@@ -1,6 +1,6 @@
-# dokku mysql [![Build Status](https://img.shields.io/circleci/project/github/dokku/dokku-mysql.svg?branch=master&style=flat-square "Build Status")](https://circleci.com/gh/dokku/dokku-mysql/tree/master) [![IRC Network](https://img.shields.io/badge/irc-freenode-blue.svg?style=flat-square "IRC Freenode")](https://webchat.freenode.net/?channels=dokku)
+# dokku mysql [![Build Status](https://img.shields.io/github/workflow/status/dokku/dokku-mysql/CI/master?style=flat-square "Build Status")](https://github.com/dokku/dokku-mysql/actions/workflows/ci.yml?query=branch%3Amaster) [![IRC Network](https://img.shields.io/badge/irc-libera-blue.svg?style=flat-square "IRC Libera")](https://webchat.libera.chat/?channels=dokku)
 
-Official mysql plugin for dokku. Currently defaults to installing [mysql 8.0.25](https://hub.docker.com/_/mysql/).
+Official mysql plugin for dokku. Currently defaults to installing [mysql 8.0.26](https://hub.docker.com/_/mysql/).
 
 ## Requirements
 
@@ -18,14 +18,14 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 
 ```
 mysql:app-links <app>                              # list all mysql service links for a given app
-mysql:backup <service> <bucket-name> [--use-iam]   # creates a backup of the mysql service to an existing s3 bucket
-mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <aws-default-region> <aws-signature-version> <endpoint-url> # sets up authentication for backups on the mysql service
-mysql:backup-deauth <service>                      # removes backup authentication for the mysql service
-mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam] # schedules a backup of the mysql service
+mysql:backup <service> <bucket-name> [--use-iam]   # create a backup of the mysql service to an existing s3 bucket
+mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <aws-default-region> <aws-signature-version> <endpoint-url> # set up authentication for backups on the mysql service
+mysql:backup-deauth <service>                      # remove backup authentication for the mysql service
+mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam] # schedule a backup of the mysql service
 mysql:backup-schedule-cat <service>                # cat the contents of the configured backup cronfile for the service
-mysql:backup-set-encryption <service> <passphrase> # sets encryption for all future backups of mysql service
-mysql:backup-unschedule <service>                  # unschedules the backup of the mysql service
-mysql:backup-unset-encryption <service>            # unsets encryption for future backups of the mysql service
+mysql:backup-set-encryption <service> <passphrase> # set encryption for all future backups of mysql service
+mysql:backup-unschedule <service>                  # unschedule the backup of the mysql service
+mysql:backup-unset-encryption <service>            # unset encryption for future backups of the mysql service
 mysql:clone <service> <new-service> [--clone-flags...] # create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <service>                            # connect to the service via the mysql connection tool
 mysql:create <service> [--create-flags...]         # create a mysql service
@@ -33,7 +33,7 @@ mysql:destroy <service> [-f|--force]               # delete the mysql service/da
 mysql:enter <service>                              # enter or run a command in a running mysql service container
 mysql:exists <service>                             # check if the mysql service exists
 mysql:export <service>                             # export a dump of the mysql service database
-mysql:expose <service> <ports...>                  # expose a mysql service on custom port if provided (random port otherwise)
+mysql:expose <service> <ports...>                  # expose a mysql service on custom host:port if provided (random port on the 0.0.0.0 interface if otherwise unspecified)
 mysql:import <service>                             # import a dump into the mysql service database
 mysql:info <service> [--single-info-flag]          # print the service information
 mysql:link <service> <app> [--link-flags...]       # link the mysql service to the app
@@ -52,7 +52,7 @@ mysql:upgrade <service> [--upgrade-flags...]       # upgrade service <service> t
 
 ## Usage
 
-Help for any commands can be displayed by specifying the command as an argument to mysql:help. Please consult the `mysql:help` command for any undocumented commands.
+Help for any commands can be displayed by specifying the command as an argument to mysql:help. Plugin help output in conjunction with any files in the `docs/` folder is used to generate the plugin documentation. Please consult the `mysql:help` command for any undocumented commands.
 
 ### Basic Usage
 
@@ -65,31 +65,34 @@ dokku mysql:create <service> [--create-flags...]
 
 flags:
 
+- `-c|--config-options "--args --go=here"`: extra arguments to pass to the container create command (default: `None`)
 - `-C|--custom-env "USER=alpha;HOST=beta"`: semi-colon delimited environment variables to start the service with
 - `-i|--image IMAGE`: the image name to start the service with
 - `-I|--image-version IMAGE_VERSION`: the image version to start the service with
+- `-m|--memory MEMORY`: container memory limit (default: unlimited)
 - `-p|--password PASSWORD`: override the user-level service password
 - `-r|--root-password PASSWORD`: override the root-level service password
+- `-s|--shm-size SHM_SIZE`: override shared memory size for mysql docker container
 
-Create a mysql service named lolipop:
+Create a mysql service named lollipop:
 
 ```shell
-dokku mysql:create lolipop
+dokku mysql:create lollipop
 ```
 
-You can also specify the image and image version to use for the service. It *must* be compatible with the mysql image. 
+You can also specify the image and image version to use for the service. It *must* be compatible with the mysql image.
 
 ```shell
-export DATABASE_IMAGE="mysql"
-export DATABASE_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
-dokku mysql:create lolipop
+export MYSQL_IMAGE="mysql"
+export MYSQL_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
+dokku mysql:create lollipop
 ```
 
-You can also specify custom environment variables to start the mysql service in semi-colon separated form. 
+You can also specify custom environment variables to start the mysql service in semi-colon separated form.
 
 ```shell
-export DATABASE_CUSTOM_ENV="USER=alpha;HOST=beta"
-dokku mysql:create lolipop
+export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
+dokku mysql:create lollipop
 ```
 
 ### print the service information
@@ -115,22 +118,22 @@ flags:
 Get connection information as follows:
 
 ```shell
-dokku mysql:info lolipop
+dokku mysql:info lollipop
 ```
 
 You can also retrieve a specific piece of service info via flags:
 
 ```shell
-dokku mysql:info lolipop --config-dir
-dokku mysql:info lolipop --data-dir
-dokku mysql:info lolipop --dsn
-dokku mysql:info lolipop --exposed-ports
-dokku mysql:info lolipop --id
-dokku mysql:info lolipop --internal-ip
-dokku mysql:info lolipop --links
-dokku mysql:info lolipop --service-root
-dokku mysql:info lolipop --status
-dokku mysql:info lolipop --version
+dokku mysql:info lollipop --config-dir
+dokku mysql:info lollipop --data-dir
+dokku mysql:info lollipop --dsn
+dokku mysql:info lollipop --exposed-ports
+dokku mysql:info lollipop --id
+dokku mysql:info lollipop --internal-ip
+dokku mysql:info lollipop --links
+dokku mysql:info lollipop --service-root
+dokku mysql:info lollipop --status
+dokku mysql:info lollipop --version
 ```
 
 ### list all mysql services
@@ -160,13 +163,13 @@ flags:
 You can tail logs for a particular service:
 
 ```shell
-dokku mysql:logs lolipop
+dokku mysql:logs lollipop
 ```
 
 By default, logs will not be tailed, but you can do this with the --tail flag:
 
 ```shell
-dokku mysql:logs lolipop --tail
+dokku mysql:logs lollipop --tail
 ```
 
 ### link the mysql service to the app
@@ -181,48 +184,48 @@ flags:
 - `-a|--alias "BLUE_DATABASE"`: an alternative alias to use for linking to an app via environment variable
 - `-q|--querystring "pool=5"`: ampersand delimited querystring arguments to append to the service link
 
-A mysql service can be linked to a container. This will use native docker links via the docker-options plugin. Here we link it to our 'playground' app. 
+A mysql service can be linked to a container. This will use native docker links via the docker-options plugin. Here we link it to our `playground` app.
 
 > NOTE: this will restart your app
 
 ```shell
-dokku mysql:link lolipop playground
+dokku mysql:link lollipop playground
 ```
 
 The following environment variables will be set automatically by docker (not on the app itself, so they won’t be listed when calling dokku config):
 
 ```
-DOKKU_DATABASE_LOLIPOP_NAME=/lolipop/DATABASE
-DOKKU_DATABASE_LOLIPOP_PORT=tcp://172.17.0.1:3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP=tcp://172.17.0.1:3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_PROTO=tcp
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_PORT=3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
+DOKKU_MYSQL_LOLLIPOP_NAME=/lollipop/DATABASE
+DOKKU_MYSQL_LOLLIPOP_PORT=tcp://172.17.0.1:3306
+DOKKU_MYSQL_LOLLIPOP_PORT_3306_TCP=tcp://172.17.0.1:3306
+DOKKU_MYSQL_LOLLIPOP_PORT_3306_TCP_PROTO=tcp
+DOKKU_MYSQL_LOLLIPOP_PORT_3306_TCP_PORT=3306
+DOKKU_MYSQL_LOLLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
 ```
 
 The following will be set on the linked application by default:
 
 ```
-DATABASE_URL=mysql://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+DATABASE_URL=mysql://mysql:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
 ```
 
-The host exposed here only works internally in docker containers. If you want your container to be reachable from outside, you should use the 'expose' subcommand. Another service can be linked to your app:
+The host exposed here only works internally in docker containers. If you want your container to be reachable from outside, you should use the `expose` subcommand. Another service can be linked to your app:
 
 ```shell
 dokku mysql:link other_service playground
 ```
 
-It is possible to change the protocol for `DATABASE_URL` by setting the environment variable `MYSQL_DATABASE_SCHEME` on the app. Doing so will after linking will cause the plugin to think the service is not linked, and we advise you to unlink before proceeding. 
+It is possible to change the protocol for `DATABASE_URL` by setting the environment variable `MYSQL_DATABASE_SCHEME` on the app. Doing so will after linking will cause the plugin to think the service is not linked, and we advise you to unlink before proceeding.
 
 ```shell
 dokku config:set playground MYSQL_DATABASE_SCHEME=mysql2
-dokku mysql:link lolipop playground
+dokku mysql:link lollipop playground
 ```
 
 This will cause `DATABASE_URL` to be set as:
 
 ```
-mysql2://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+mysql2://mysql:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
 ```
 
 ### unlink the mysql service from the app
@@ -237,7 +240,7 @@ You can unlink a mysql service:
 > NOTE: this will restart your app and unset related environment variables
 
 ```shell
-dokku mysql:unlink lolipop playground
+dokku mysql:unlink lollipop playground
 ```
 
 ### Service Lifecycle
@@ -253,8 +256,10 @@ dokku mysql:connect <service>
 
 Connect to the service via the mysql connection tool:
 
+> NOTE: disconnecting from ssh while running this command may leave zombie processes due to moby/moby#9098
+
 ```shell
-dokku mysql:connect lolipop
+dokku mysql:connect lollipop
 ```
 
 ### enter or run a command in a running mysql service container
@@ -264,19 +269,21 @@ dokku mysql:connect lolipop
 dokku mysql:enter <service>
 ```
 
-A bash prompt can be opened against a running service. Filesystem changes will not be saved to disk. 
+A bash prompt can be opened against a running service. Filesystem changes will not be saved to disk.
+
+> NOTE: disconnecting from ssh while running this command may leave zombie processes due to moby/moby#9098
 
 ```shell
-dokku mysql:enter lolipop
+dokku mysql:enter lollipop
 ```
 
-You may also run a command directly against the service. Filesystem changes will not be saved to disk. 
+You may also run a command directly against the service. Filesystem changes will not be saved to disk.
 
 ```shell
-dokku mysql:enter lolipop touch /tmp/test
+dokku mysql:enter lollipop touch /tmp/test
 ```
 
-### expose a mysql service on custom port if provided (random port otherwise)
+### expose a mysql service on custom host:port if provided (random port on the 0.0.0.0 interface if otherwise unspecified)
 
 ```shell
 # usage
@@ -286,7 +293,13 @@ dokku mysql:expose <service> <ports...>
 Expose the service on the service's normal ports, allowing access to it from the public interface (`0.0.0.0`):
 
 ```shell
-dokku mysql:expose lolipop 3306
+dokku mysql:expose lollipop 3306
+```
+
+Expose the service on the service's normal ports, with the first on a specified ip adddress (127.0.0.1):
+
+```shell
+dokku mysql:expose lollipop 127.0.0.1:3306
 ```
 
 ### unexpose a previously exposed mysql service
@@ -299,7 +312,7 @@ dokku mysql:unexpose <service>
 Unexpose the service, removing access to it from the public interface (`0.0.0.0`):
 
 ```shell
-dokku mysql:unexpose lolipop
+dokku mysql:unexpose lollipop
 ```
 
 ### promote service <service> as DATABASE_URL in <app>
@@ -328,7 +341,7 @@ This will replace `DATABASE_URL` with the url from other_service and generate an
 ```
 DATABASE_URL=mysql://other_service:ANOTHER_PASSWORD@dokku-mysql-other-service:3306/other_service
 DOKKU_DATABASE_BLUE_URL=mysql://other_service:ANOTHER_PASSWORD@dokku-mysql-other-service:3306/other_service
-DOKKU_DATABASE_SILVER_URL=mysql://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+DOKKU_DATABASE_SILVER_URL=mysql://lollipop:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
 ```
 
 ### start a previously stopped mysql service
@@ -341,7 +354,7 @@ dokku mysql:start <service>
 Start the service:
 
 ```shell
-dokku mysql:start lolipop
+dokku mysql:start lollipop
 ```
 
 ### stop a running mysql service
@@ -354,7 +367,7 @@ dokku mysql:stop <service>
 Stop the service and the running container:
 
 ```shell
-dokku mysql:stop lolipop
+dokku mysql:stop lollipop
 ```
 
 ### graceful shutdown and restart of the mysql service container
@@ -367,7 +380,7 @@ dokku mysql:restart <service>
 Restart the service:
 
 ```shell
-dokku mysql:restart lolipop
+dokku mysql:restart lollipop
 ```
 
 ### upgrade service <service> to the specified versions
@@ -379,15 +392,17 @@ dokku mysql:upgrade <service> [--upgrade-flags...]
 
 flags:
 
+- `-c|--config-options "--args --go=here"`: extra arguments to pass to the container create command (default: `None`)
 - `-C|--custom-env "USER=alpha;HOST=beta"`: semi-colon delimited environment variables to start the service with
 - `-i|--image IMAGE`: the image name to start the service with
 - `-I|--image-version IMAGE_VERSION`: the image version to start the service with
 - `-R|--restart-apps "true"`: whether to force an app restart
+- `-s|--shm-size SHM_SIZE`: override shared memory size for mysql docker container
 
 You can upgrade an existing service to a new image or image-version:
 
 ```shell
-dokku mysql:upgrade lolipop
+dokku mysql:upgrade lollipop
 ```
 
 ### Service Automation
@@ -401,7 +416,7 @@ Service scripting can be executed using the following commands:
 dokku mysql:app-links <app>
 ```
 
-List all mysql services that are linked to the 'playground' app. 
+List all mysql services that are linked to the `playground` app.
 
 ```shell
 dokku mysql:app-links playground
@@ -416,16 +431,19 @@ dokku mysql:clone <service> <new-service> [--clone-flags...]
 
 flags:
 
+- `-c|--config-options "--args --go=here"`: extra arguments to pass to the container create command (default: `None`)
 - `-C|--custom-env "USER=alpha;HOST=beta"`: semi-colon delimited environment variables to start the service with
 - `-i|--image IMAGE`: the image name to start the service with
 - `-I|--image-version IMAGE_VERSION`: the image version to start the service with
+- `-m|--memory MEMORY`: container memory limit (default: unlimited)
 - `-p|--password PASSWORD`: override the user-level service password
 - `-r|--root-password PASSWORD`: override the root-level service password
+- `-s|--shm-size SHM_SIZE`: override shared memory size for mysql docker container
 
 You can clone an existing service to a new one:
 
 ```shell
-dokku mysql:clone lolipop lolipop-2
+dokku mysql:clone lollipop lollipop-2
 ```
 
 ### check if the mysql service exists
@@ -435,10 +453,10 @@ dokku mysql:clone lolipop lolipop-2
 dokku mysql:exists <service>
 ```
 
-Here we check if the lolipop mysql service exists. 
+Here we check if the lollipop mysql service exists.
 
 ```shell
-dokku mysql:exists lolipop
+dokku mysql:exists lollipop
 ```
 
 ### check if the mysql service is linked to an app
@@ -448,10 +466,10 @@ dokku mysql:exists lolipop
 dokku mysql:linked <service> <app>
 ```
 
-Here we check if the lolipop mysql service is linked to the 'playground' app. 
+Here we check if the lollipop mysql service is linked to the `playground` app.
 
 ```shell
-dokku mysql:linked lolipop playground
+dokku mysql:linked lollipop playground
 ```
 
 ### list all apps linked to the mysql service
@@ -461,10 +479,10 @@ dokku mysql:linked lolipop playground
 dokku mysql:links <service>
 ```
 
-List all apps linked to the 'lolipop' mysql service. 
+List all apps linked to the `lollipop` mysql service.
 
 ```shell
-dokku mysql:links lolipop
+dokku mysql:links lollipop
 ```
 
 ### Data Management
@@ -481,7 +499,7 @@ dokku mysql:import <service>
 Import a datastore dump:
 
 ```shell
-dokku mysql:import lolipop < database.dump
+dokku mysql:import lollipop < data.dump
 ```
 
 ### export a dump of the mysql service database
@@ -494,13 +512,13 @@ dokku mysql:export <service>
 By default, datastore output is exported to stdout:
 
 ```shell
-dokku mysql:export lolipop
+dokku mysql:export lollipop
 ```
 
 You can redirect this output to a file:
 
 ```shell
-dokku mysql:export lolipop > lolipop.dump
+dokku mysql:export lollipop > data.dump
 ```
 
 ### Backups
@@ -511,7 +529,7 @@ You may skip the `backup-auth` step if your dokku install is running within EC2 
 
 Backups can be performed using the backup commands:
 
-### sets up authentication for backups on the mysql service
+### set up authentication for backups on the mysql service
 
 ```shell
 # usage
@@ -521,28 +539,28 @@ dokku mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <a
 Setup s3 backup authentication:
 
 ```shell
-dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+dokku mysql:backup-auth lollipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 ```
 
 Setup s3 backup authentication with different region:
 
 ```shell
-dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION
+dokku mysql:backup-auth lollipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION
 ```
 
 Setup s3 backup authentication with different signature version and endpoint:
 
 ```shell
-dokku mysql:backup-auth lolipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SIGNATURE_VERSION ENDPOINT_URL
+dokku mysql:backup-auth lollipop AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SIGNATURE_VERSION ENDPOINT_URL
 ```
 
 More specific example for minio auth:
 
 ```shell
-dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
+dokku mysql:backup-auth lollipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
 ```
 
-### removes backup authentication for the mysql service
+### remove backup authentication for the mysql service
 
 ```shell
 # usage
@@ -552,10 +570,10 @@ dokku mysql:backup-deauth <service>
 Remove s3 authentication:
 
 ```shell
-dokku mysql:backup-deauth lolipop
+dokku mysql:backup-deauth lollipop
 ```
 
-### creates a backup of the mysql service to an existing s3 bucket
+### create a backup of the mysql service to an existing s3 bucket
 
 ```shell
 # usage
@@ -566,13 +584,19 @@ flags:
 
 - `-u|--use-iam`: use the IAM profile associated with the current server
 
-Backup the 'lolipop' service to the 'my-s3-bucket' bucket on ``AWS`:`
+Backup the `lollipop` service to the `my-s3-bucket` bucket on `AWS`:`
 
 ```shell
-dokku mysql:backup lolipop my-s3-bucket --use-iam
+dokku mysql:backup lollipop my-s3-bucket --use-iam
 ```
 
-### sets encryption for all future backups of mysql service
+Restore a backup file (assuming it was extracted via `tar -xf backup.tgz`):
+
+```shell
+dokku mysql:import lollipop < backup-folder/export
+```
+
+### set encryption for all future backups of mysql service
 
 ```shell
 # usage
@@ -582,10 +606,10 @@ dokku mysql:backup-set-encryption <service> <passphrase>
 Set the GPG-compatible passphrase for encrypting backups for backups:
 
 ```shell
-dokku mysql:backup-set-encryption lolipop
+dokku mysql:backup-set-encryption lollipop
 ```
 
-### unsets encryption for future backups of the mysql service
+### unset encryption for future backups of the mysql service
 
 ```shell
 # usage
@@ -595,10 +619,10 @@ dokku mysql:backup-unset-encryption <service>
 Unset the `GPG` encryption passphrase for backups:
 
 ```shell
-dokku mysql:backup-unset-encryption lolipop
+dokku mysql:backup-unset-encryption lollipop
 ```
 
-### schedules a backup of the mysql service
+### schedule a backup of the mysql service
 
 ```shell
 # usage
@@ -614,13 +638,13 @@ Schedule a backup:
 > 'schedule' is a crontab expression, eg. "0 3 * * *" for each day at 3am
 
 ```shell
-dokku mysql:backup-schedule lolipop "0 3 * * *" my-s3-bucket
+dokku mysql:backup-schedule lollipop "0 3 * * *" my-s3-bucket
 ```
 
 Schedule a backup and authenticate via iam:
 
 ```shell
-dokku mysql:backup-schedule lolipop "0 3 * * *" my-s3-bucket --use-iam
+dokku mysql:backup-schedule lollipop "0 3 * * *" my-s3-bucket --use-iam
 ```
 
 ### cat the contents of the configured backup cronfile for the service
@@ -633,10 +657,10 @@ dokku mysql:backup-schedule-cat <service>
 Cat the contents of the configured backup cronfile for the service:
 
 ```shell
-dokku mysql:backup-schedule-cat lolipop
+dokku mysql:backup-schedule-cat lollipop
 ```
 
-### unschedules the backup of the mysql service
+### unschedule the backup of the mysql service
 
 ```shell
 # usage
@@ -646,7 +670,7 @@ dokku mysql:backup-unschedule <service>
 Remove the scheduled backup from cron:
 
 ```shell
-dokku mysql:backup-unschedule lolipop
+dokku mysql:backup-unschedule lollipop
 ```
 
 ### Disabling `docker pull` calls

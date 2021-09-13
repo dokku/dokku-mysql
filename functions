@@ -18,7 +18,7 @@ service_connect() {
   local SERVICE_TTY_OPTS
   has_tty && SERVICE_TTY_OPTS="-t"
 
-  docker exec -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$DATABASE_NAME"
+  docker exec --env=LANG=C.UTF-8 --env=LC_ALL=C.UTF-8 -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$DATABASE_NAME"
 }
 
 service_create() {
@@ -63,13 +63,7 @@ service_create() {
   echo "$PASSWORD" >"$SERVICE_ROOT/PASSWORD"
   chmod 640 "$SERVICE_ROOT/ROOTPASSWORD" "$SERVICE_ROOT/PASSWORD"
 
-  [[ -n "$SERVICE_CUSTOM_ENV" ]] && MYSQL_CUSTOM_ENV="$SERVICE_CUSTOM_ENV"
-  if [[ -n $MYSQL_CUSTOM_ENV ]]; then
-    echo "$MYSQL_CUSTOM_ENV" | tr ';' "\n" >"$SERVICE_ROOT/ENV"
-  else
-    echo "" >"$SERVICE_ROOT/ENV"
-  fi
-
+  service_commit_config "$SERVICE"
   write_database_name "$SERVICE"
   plugn trigger service-action post-create "$SERVICE"
   service_create_container "$SERVICE"
@@ -84,8 +78,27 @@ service_create_container() {
   local ROOTPASSWORD="$(service_root_password "$SERVICE")"
   local PASSWORD="$(service_password "$SERVICE")"
   local DATABASE_NAME="$(get_database_name "$SERVICE")"
+  local MEMORY_LIMIT=""
 
-  ID=$(docker run --name "$SERVICE_NAME" -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION")
+  if [[ -f "$SERVICE_ROOT/CONFIG_OPTIONS" ]]; then
+    export CONFIG_OPTIONS="$(cat "$SERVICE_ROOT/CONFIG_OPTIONS")"
+  fi
+
+  [[ -f "$SERVICE_ROOT/SERVICE_MEMORY" ]] && SERVICE_MEMORY="$(cat "$SERVICE_ROOT/SERVICE_MEMORY")"
+  if [[ -n "$SERVICE_MEMORY" ]]; then
+    MEMORY_LIMIT="--memory=${SERVICE_MEMORY}m"
+  fi
+
+  [[ -f "$SERVICE_ROOT/SHM_SIZE" ]] && SERVICE_SHM_SIZE="$(cat "$SERVICE_ROOT/SHM_SIZE")"
+  if [[ -n "$SERVICE_SHM_SIZE" ]]; then
+    SHM_SIZE="--shm-size=${SERVICE_SHM_SIZE}"
+  fi
+
+  [[ -f "$SERVICE_ROOT/IMAGE" ]] && PLUGIN_IMAGE="$(cat "$SERVICE_ROOT/IMAGE")"
+  [[ -f "$SERVICE_ROOT/IMAGE_VERSION" ]] && PLUGIN_IMAGE_VERSION="$(cat "$SERVICE_ROOT/IMAGE_VERSION")"
+
+  # shellcheck disable=SC2086
+  ID=$(docker run --name "$SERVICE_NAME" $MEMORY_LIMIT $SHM_SIZE -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" $CONFIG_OPTIONS)
   echo "$ID" >"$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
@@ -155,7 +168,13 @@ service_start() {
   elif service_image_exists "$SERVICE" && [[ -n "$ROOTPASSWORD" ]] && [[ -n "$PASSWORD" ]]; then
     service_create_container "$SERVICE"
   else
-    dokku_log_verbose_quiet "Neither container nor valid configuration exists for $SERVICE"
+    if ! service_image_exists "$SERVICE"; then
+      [[ -f "$SERVICE_ROOT/IMAGE" ]] && PLUGIN_IMAGE="$(cat "$SERVICE_ROOT/IMAGE")"
+      [[ -f "$SERVICE_ROOT/IMAGE_VERSION" ]] && PLUGIN_IMAGE_VERSION="$(cat "$SERVICE_ROOT/IMAGE_VERSION")"
+      dokku_log_verbose_quiet "Missing image $PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION for $SERVICE"
+    else
+      dokku_log_verbose_quiet "Neither container nor valid configuration exists for $SERVICE"
+    fi
   fi
 }
 
