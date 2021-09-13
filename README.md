@@ -194,18 +194,18 @@ dokku mysql:link lolipop playground
 The following environment variables will be set automatically by docker (not on the app itself, so they won’t be listed when calling dokku config):
 
 ```
-DOKKU_DATABASE_LOLIPOP_NAME=/lolipop/DATABASE
-DOKKU_DATABASE_LOLIPOP_PORT=tcp://172.17.0.1:3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP=tcp://172.17.0.1:3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_PROTO=tcp
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_PORT=3306
-DOKKU_DATABASE_LOLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
+DOKKU_MYSQL_LOLIPOP_NAME=/lolipop/DATABASE
+DOKKU_MYSQL_LOLIPOP_PORT=tcp://172.17.0.1:3306
+DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP=tcp://172.17.0.1:3306
+DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_PROTO=tcp
+DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_PORT=3306
+DOKKU_MYSQL_LOLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
 ```
 
 The following will be set on the linked application by default:
 
 ```
-DATABASE_URL=mysql://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+DATABASE_URL=mysql://mysql:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 ```
 
 The host exposed here only works internally in docker containers. If you want your container to be reachable from outside, you should use the `expose` subcommand. Another service can be linked to your app:
@@ -224,7 +224,7 @@ dokku mysql:link lolipop playground
 This will cause `DATABASE_URL` to be set as:
 
 ```
-mysql2://lolipop:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
+mysql2://mysql:SOME_PASSWORD@dokku-mysql-lolipop:3306/lolipop
 ```
 
 ### unlink the mysql service from the app
