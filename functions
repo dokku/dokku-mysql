@@ -108,8 +108,8 @@ service_export() {
   local PASSWORD="$(service_password "$SERVICE")"
 
   [[ -n $SSH_TTY ]] && stty -opost
-  docker exec "$SERVICE_NAME" bash -c "printf '[client]\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --quick  "$DATABASE_NAME"
+  docker exec "$SERVICE_NAME" bash -c "printf '[client]\ndefault-character-set=utf8mb4\npassword=$PASSWORD\n' > /root/credentials.cnf"
+  docker exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --quick "$DATABASE_NAME"
   docker exec "$SERVICE_NAME" rm /root/credentials.cnf
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
