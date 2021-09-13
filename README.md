@@ -18,14 +18,14 @@ sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
 
 ```
 mysql:app-links <app>                              # list all mysql service links for a given app
-mysql:backup <service> <bucket-name> [--use-iam]   # creates a backup of the mysql service to an existing s3 bucket
-mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <aws-default-region> <aws-signature-version> <endpoint-url> # sets up authentication for backups on the mysql service
-mysql:backup-deauth <service>                      # removes backup authentication for the mysql service
-mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam] # schedules a backup of the mysql service
+mysql:backup <service> <bucket-name> [--use-iam]   # create a backup of the mysql service to an existing s3 bucket
+mysql:backup-auth <service> <aws-access-key-id> <aws-secret-access-key> <aws-default-region> <aws-signature-version> <endpoint-url> # set up authentication for backups on the mysql service
+mysql:backup-deauth <service>                      # remove backup authentication for the mysql service
+mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam] # schedule a backup of the mysql service
 mysql:backup-schedule-cat <service>                # cat the contents of the configured backup cronfile for the service
-mysql:backup-set-encryption <service> <passphrase> # sets encryption for all future backups of mysql service
-mysql:backup-unschedule <service>                  # unschedules the backup of the mysql service
-mysql:backup-unset-encryption <service>            # unsets encryption for future backups of the mysql service
+mysql:backup-set-encryption <service> <passphrase> # set encryption for all future backups of mysql service
+mysql:backup-unschedule <service>                  # unschedule the backup of the mysql service
+mysql:backup-unset-encryption <service>            # unset encryption for future backups of the mysql service
 mysql:clone <service> <new-service> [--clone-flags...] # create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <service>                            # connect to the service via the mysql connection tool
 mysql:create <service> [--create-flags...]         # create a mysql service
@@ -522,7 +522,7 @@ You may skip the `backup-auth` step if your dokku install is running within EC2 
 
 Backups can be performed using the backup commands:
 
-### sets up authentication for backups on the mysql service
+### set up authentication for backups on the mysql service
 
 ```shell
 # usage
@@ -553,7 +553,7 @@ More specific example for minio auth:
 dokku mysql:backup-auth lolipop MINIO_ACCESS_KEY_ID MINIO_SECRET_ACCESS_KEY us-east-1 s3v4 https://YOURMINIOSERVICE
 ```
 
-### removes backup authentication for the mysql service
+### remove backup authentication for the mysql service
 
 ```shell
 # usage
@@ -566,7 +566,7 @@ Remove s3 authentication:
 dokku mysql:backup-deauth lolipop
 ```
 
-### creates a backup of the mysql service to an existing s3 bucket
+### create a backup of the mysql service to an existing s3 bucket
 
 ```shell
 # usage
@@ -589,7 +589,7 @@ Restore a backup file (assuming it was extracted via `tar -xf backup.tgz`):
 dokku mysql:import lolipop < backup-folder/export
 ```
 
-### sets encryption for all future backups of mysql service
+### set encryption for all future backups of mysql service
 
 ```shell
 # usage
@@ -602,7 +602,7 @@ Set the GPG-compatible passphrase for encrypting backups for backups:
 dokku mysql:backup-set-encryption lolipop
 ```
 
-### unsets encryption for future backups of the mysql service
+### unset encryption for future backups of the mysql service
 
 ```shell
 # usage
@@ -615,7 +615,7 @@ Unset the `GPG` encryption passphrase for backups:
 dokku mysql:backup-unset-encryption lolipop
 ```
 
-### schedules a backup of the mysql service
+### schedule a backup of the mysql service
 
 ```shell
 # usage
@@ -653,7 +653,7 @@ Cat the contents of the configured backup cronfile for the service:
 dokku mysql:backup-schedule-cat lolipop
 ```
 
-### unschedules the backup of the mysql service
+### unschedule the backup of the mysql service
 
 ```shell
 # usage
