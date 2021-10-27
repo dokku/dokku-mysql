@@ -40,7 +40,7 @@ mysql:link <service> <app> [--link-flags...]       # link the mysql service to t
 mysql:linked <service> <app>                       # check if the mysql service is linked to an app
 mysql:links <service>                              # list all apps linked to the mysql service
 mysql:list                                         # list all mysql services
-mysql:logs <service> [-t|--tail]                   # print the most recent log(s) for this service
+mysql:logs <service> [-t|--tail] <tail-num-optional> # print the most recent log(s) for this service
 mysql:promote <service> <app>                      # promote service <service> as DATABASE_URL in <app>
 mysql:restart <service>                            # graceful shutdown and restart of the mysql service container
 mysql:start <service>                              # start a previously stopped mysql service
@@ -153,12 +153,12 @@ dokku mysql:list
 
 ```shell
 # usage
-dokku mysql:logs <service> [-t|--tail]
+dokku mysql:logs <service> [-t|--tail] <tail-num-optional>
 ```
 
 flags:
 
-- `-t|--tail`: do not stop when end of the logs are reached and wait for additional output
+- `-t|--tail [<tail-num>]`: do not stop when end of the logs are reached and wait for additional output
 
 You can tail logs for a particular service:
 
@@ -170,6 +170,12 @@ By default, logs will not be tailed, but you can do this with the --tail flag:
 
 ```shell
 dokku mysql:logs lollipop --tail
+```
+
+The default tail setting is to show all logs, but an initial count can also be specified:
+
+```shell
+dokku mysql:logs lollipop --tail 5
 ```
 
 ### link the mysql service to the app
