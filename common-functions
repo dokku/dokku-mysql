@@ -341,6 +341,10 @@ service_commit_config() {
     echo "$SERVICE_SHM_SIZE" >"$SERVICE_ROOT/SHM_SIZE"
   fi
 
+  if [[ -n "$SERVICE_DOCKER_OPTIONS" ]]; then
+    echo "$SERVICE_DOCKER_OPTIONS" >"$SERVICE_ROOT/DOCKER_OPTIONS"
+  fi
+
   if [[ -n "$PLUGIN_IMAGE" ]]; then
     echo "$PLUGIN_IMAGE" >"$SERVICE_ROOT/IMAGE"
   fi
@@ -688,6 +692,7 @@ service_parse_args() {
       "--config-options") set -- "$@" "-c" ;;
       "--custom-env") set -- "$@" "-C" ;;
       "--database") set -- "$@" "-d" ;;
+      "--docker-options") set -- "$@" "-D" ;;
       "--image-version") set -- "$@" "-I" ;;
       "--image") set -- "$@" "-i" ;;
       "--memory") set -- "$@" "-m" ;;
@@ -702,7 +707,7 @@ service_parse_args() {
   done
 
   OPTIND=1
-  while getopts "a:c:C:d:i:I:m:p:q:R:r:s:u:" opt; do
+  while getopts "a:c:C:d:D:i:I:m:p:q:R:r:s:u:" opt; do
     case "$opt" in
       a)
         SERVICE_ALIAS="${OPTARG^^}"
@@ -716,6 +721,9 @@ service_parse_args() {
         ;;
       d)
         export SERVICE_DATABASE=$OPTARG
+        ;;
+      D)
+        export SERVICE_DOCKER_OPTIONS=$OPTARG
         ;;
       i)
         export PLUGIN_IMAGE=$OPTARG
