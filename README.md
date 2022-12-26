@@ -41,6 +41,7 @@ mysql:linked <service> <app>                       # check if the mysql service 
 mysql:links <service>                              # list all apps linked to the mysql service
 mysql:list                                         # list all mysql services
 mysql:logs <service> [-t|--tail] <tail-num-optional> # print the most recent log(s) for this service
+mysql:pause <service>                              # pause a running mysql service
 mysql:promote <service> <app>                      # promote service <service> as DATABASE_URL in <app>
 mysql:restart <service>                            # graceful shutdown and restart of the mysql service container
 mysql:start <service>                              # start a previously stopped mysql service
@@ -370,10 +371,23 @@ dokku mysql:start lollipop
 dokku mysql:stop <service>
 ```
 
-Stop the service and the running container:
+Stop the service and removes the running container:
 
 ```shell
 dokku mysql:stop lollipop
+```
+
+### pause a running mysql service
+
+```shell
+# usage
+dokku mysql:pause <service>
+```
+
+Pause the running container for the service:
+
+```shell
+dokku mysql:pause lollipop
 ```
 
 ### graceful shutdown and restart of the mysql service container
