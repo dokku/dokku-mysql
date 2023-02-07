@@ -18,7 +18,7 @@ service_connect() {
   local SERVICE_TTY_OPTS
   has_tty && SERVICE_TTY_OPTS="-t"
 
-  docker container exec --env=LANG=C.UTF-8 --env=LC_ALL=C.UTF-8 -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$DATABASE_NAME"
+  "$DOCKER_BIN" container exec --env=LANG=C.UTF-8 --env=LC_ALL=C.UTF-8 -i $SERVICE_TTY_OPTS "$SERVICE_NAME" mysql --user=mysql --password="$PASSWORD" --database="$DATABASE_NAME"
 }
 
 service_create() {
@@ -38,7 +38,7 @@ service_create() {
       dokku_log_warn "$PLUGIN_SERVICE service creation failed"
       exit 1
     fi
-    docker image pull "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" || dokku_log_fail "$PLUGIN_SERVICE image $PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION pull failed"
+    "$DOCKER_BIN" image pull "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" || dokku_log_fail "$PLUGIN_SERVICE image $PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION pull failed"
   fi
 
   plugn trigger service-action pre-create "$PLUGIN_COMMAND_PREFIX" "$SERVICE"
@@ -98,11 +98,11 @@ service_create_container() {
   [[ -f "$SERVICE_ROOT/IMAGE_VERSION" ]] && PLUGIN_IMAGE_VERSION="$(cat "$SERVICE_ROOT/IMAGE_VERSION")"
 
   # shellcheck disable=SC2086
-  ID=$(docker container run --name "$SERVICE_NAME" $MEMORY_LIMIT $SHM_SIZE -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" $CONFIG_OPTIONS)
+  ID=$("$DOCKER_BIN" container run --name "$SERVICE_NAME" $MEMORY_LIMIT $SHM_SIZE -v "$SERVICE_HOST_ROOT/data:/var/lib/mysql" -v "$SERVICE_HOST_ROOT/$PLUGIN_CONFIG_SUFFIX:/etc/mysql/conf.d" -e "MYSQL_ROOT_PASSWORD=$ROOTPASSWORD" -e MYSQL_USER=mysql -e "MYSQL_PASSWORD=$PASSWORD" -e "MYSQL_DATABASE=$DATABASE_NAME" --env-file="$SERVICE_ROOT/ENV" -d --restart always --label dokku=service --label dokku.service=mysql "$PLUGIN_IMAGE:$PLUGIN_IMAGE_VERSION" $CONFIG_OPTIONS)
   echo "$ID" >"$SERVICE_ROOT/ID"
 
   dokku_log_verbose_quiet "Waiting for container to be ready"
-  docker container run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" "$PLUGIN_WAIT_IMAGE" -p "$PLUGIN_DATASTORE_WAIT_PORT" >/dev/null
+  "$DOCKER_BIN" container run --rm --link "$SERVICE_NAME:$PLUGIN_COMMAND_PREFIX" "$PLUGIN_WAIT_IMAGE" -p "$PLUGIN_DATASTORE_WAIT_PORT" >/dev/null
 
   dokku_log_info2 "$PLUGIN_SERVICE container created: $SERVICE"
   service_info "$SERVICE"
@@ -116,9 +116,9 @@ service_export() {
   local PASSWORD="$(service_password "$SERVICE")"
 
   [[ -n $SSH_TTY ]] && stty -opost
-  docker container exec "$SERVICE_NAME" bash -c "printf '[client]\ndefault-character-set=utf8mb4\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  docker container exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --no-tablespaces --quick "$DATABASE_NAME"
-  docker container exec "$SERVICE_NAME" rm /root/credentials.cnf
+  "$DOCKER_BIN" container exec "$SERVICE_NAME" bash -c "printf '[client]\ndefault-character-set=utf8mb4\npassword=$PASSWORD\n' > /root/credentials.cnf"
+  "$DOCKER_BIN" container exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --no-tablespaces --quick "$DATABASE_NAME"
+  "$DOCKER_BIN" container exec "$SERVICE_NAME" rm /root/credentials.cnf
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
   exit $status
@@ -135,7 +135,7 @@ service_import() {
   if [[ -t 0 ]]; then
     dokku_log_fail "No data provided on stdin."
   fi
-  docker container exec -i "$SERVICE_NAME" mysql --user=root --password="$ROOTPASSWORD" "$DATABASE_NAME"
+  "$DOCKER_BIN" container exec -i "$SERVICE_NAME" mysql --user=root --password="$ROOTPASSWORD" "$DATABASE_NAME"
 }
 
 service_start() {
@@ -143,7 +143,7 @@ service_start() {
   local QUIET="$2"
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
-  local ID=$(docker container ps -aq --no-trunc --filter "status=running" --filter "name=^/$SERVICE_NAME$" --format '{{ .ID }}') || true
+  local ID=$("$DOCKER_BIN" container ps -aq --no-trunc --filter "status=running" --filter "name=^/$SERVICE_NAME$" --format '{{ .ID }}') || true
   if [[ -n $ID ]]; then
     [[ -z $QUIET ]] && dokku_log_warn "Service is already started"
     if [[ ! -f "$SERVICE_ROOT/ID" ]] || [[ "$(cat "$SERVICE_ROOT/ID")" != "$ID" ]]; then
@@ -154,12 +154,12 @@ service_start() {
   fi
 
   dokku_log_info2_quiet "Starting container"
-  local PREVIOUS_ID=$(docker container ps -aq --no-trunc --filter "status=exited" --filter "name=^/$SERVICE_NAME$" --format '{{ .ID }}') || true
+  local PREVIOUS_ID=$("$DOCKER_BIN" container ps -aq --no-trunc --filter "status=exited" --filter "name=^/$SERVICE_NAME$" --format '{{ .ID }}') || true
   local ROOTPASSWORD="$(service_root_password "$SERVICE")"
   local PASSWORD="$(service_password "$SERVICE")"
 
   if [[ -n $PREVIOUS_ID ]]; then
-    docker container start "$PREVIOUS_ID" >/dev/null
+    "$DOCKER_BIN" container start "$PREVIOUS_ID" >/dev/null
     service_port_unpause "$SERVICE"
     dokku_log_info2 "Container started"
   elif service_image_exists "$SERVICE" && [[ -n "$ROOTPASSWORD" ]] && [[ -n "$PASSWORD" ]]; then
