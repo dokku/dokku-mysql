@@ -44,6 +44,7 @@ mysql:logs <service> [-t|--tail] <tail-num-optional> # print the most recent log
 mysql:pause <service>                              # pause a running mysql service
 mysql:promote <service> <app>                      # promote service <service> as DATABASE_URL in <app>
 mysql:restart <service>                            # graceful shutdown and restart of the mysql service container
+mysql:set <service> <key> <value>                  # set or clear a property for a service
 mysql:start <service>                              # start a previously stopped mysql service
 mysql:stop <service>                               # stop a running mysql service
 mysql:unexpose <service>                           # unexpose a previously exposed mysql service
@@ -248,6 +249,25 @@ You can unlink a mysql service:
 
 ```shell
 dokku mysql:unlink lollipop playground
+```
+
+### set or clear a property for a service
+
+```shell
+# usage
+dokku mysql:set <service> <key> <value>
+```
+
+Set the network to attach after the service container is started:
+
+```shell
+dokku mysql:set lollipop post-create-network custom-network
+```
+
+Unset the post-create-network value:
+
+```shell
+dokku mysql:set lollipop post-create-network
 ```
 
 ### Service Lifecycle
