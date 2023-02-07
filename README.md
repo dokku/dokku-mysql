@@ -112,7 +112,10 @@ flags:
 - `--exposed-ports`: show service exposed ports
 - `--id`: show the service container id
 - `--internal-ip`: show the service internal ip
+- `--initial-network`: show the initial network being connected to
 - `--links`: show the service app links
+- `--post-create-network`: show the networks to attach to after service container creation
+- `--post-start-network`: show the networks to attach to after service container start
 - `--service-root`: show the service root directory
 - `--status`: show the service running status
 - `--version`: show the service image version
@@ -132,7 +135,10 @@ dokku mysql:info lollipop --dsn
 dokku mysql:info lollipop --exposed-ports
 dokku mysql:info lollipop --id
 dokku mysql:info lollipop --internal-ip
+dokku mysql:info lollipop --initial-network
 dokku mysql:info lollipop --links
+dokku mysql:info lollipop --post-create-network
+dokku mysql:info lollipop --post-start-network
 dokku mysql:info lollipop --service-root
 dokku mysql:info lollipop --status
 dokku mysql:info lollipop --version
