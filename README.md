@@ -1,6 +1,6 @@
 # dokku mysql [![Build Status](https://img.shields.io/github/actions/workflow/status/dokku/dokku-mysql/ci.yml?branch=master&style=flat-square "Build Status")](https://github.com/dokku/dokku-mysql/actions/workflows/ci.yml?query=branch%3Amaster) [![IRC Network](https://img.shields.io/badge/irc-libera-blue.svg?style=flat-square "IRC Libera")](https://webchat.libera.chat/?channels=dokku)
 
-Official mysql plugin for dokku. Currently defaults to installing [mysql 8.0.31](https://hub.docker.com/_/mysql/).
+Official mysql plugin for dokku. Currently defaults to installing [mysql 8.0.32](https://hub.docker.com/_/mysql/).
 
 ## Requirements
 
