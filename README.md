@@ -200,6 +200,7 @@ flags:
 
 - `-a|--alias "BLUE_DATABASE"`: an alternative alias to use for linking to an app via environment variable
 - `-q|--querystring "pool=5"`: ampersand delimited querystring arguments to append to the service link
+- `-n|--no-restart "false"`: whether or not to restart the app on link (default: true)
 
 A mysql service can be linked to a container. This will use native docker links via the docker-options plugin. Here we link it to our `playground` app.
 
@@ -223,7 +224,7 @@ DOKKU_MYSQL_LOLLIPOP_PORT_3306_TCP_ADDR=172.17.0.1
 The following will be set on the linked application by default:
 
 ```
-DATABASE_URL=mysql://mysql:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
+DATABASE_URL=mysql://lollipop:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
 ```
 
 The host exposed here only works internally in docker containers. If you want your container to be reachable from outside, you should use the `expose` subcommand. Another service can be linked to your app:
@@ -242,7 +243,13 @@ dokku mysql:link lollipop playground
 This will cause `DATABASE_URL` to be set as:
 
 ```
-mysql2://mysql:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
+mysql2://lollipop:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
+```
+
+If you specify `MYSQL_DATABASE_SCHEME` to equal `http`, we`ll also automatically adjust `DATABASE_URL` to match the http interface:
+
+```
+http://lollipop:SOME_PASSWORD@dokku-mysql-lollipop:${PLUGIN_DATASTORE_PORTS[1]}
 ```
 
 ### unlink the mysql service from the app
@@ -251,6 +258,10 @@ mysql2://mysql:SOME_PASSWORD@dokku-mysql-lollipop:3306/lollipop
 # usage
 dokku mysql:unlink <service> <app>
 ```
+
+flags:
+
+- `-n|--no-restart "false"`: whether or not to restart the app on unlink (default: true)
 
 You can unlink a mysql service:
 
@@ -453,7 +464,7 @@ flags:
 - `-I|--image-version IMAGE_VERSION`: the image version to start the service with
 - `-N|--initial-network INITIAL_NETWORK`: the initial network to attach the service to
 - `-P|--post-create-network NETWORKS`: a comman-separated list of networks to attach the service container to after service creation
-- `-R|--restart-apps "true"`: whether to force an app restart
+- `-R|--restart-apps "true"`: whether or not to force an app restart (default: false)
 - `-S|--post-start-network NETWORKS`: a comman-separated list of networks to attach the service container to after service start
 - `-s|--shm-size SHM_SIZE`: override shared memory size for mysql docker container
 
