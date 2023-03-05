@@ -168,12 +168,10 @@ service_export() {
   local SERVICE_ROOT="$PLUGIN_DATA_ROOT/$SERVICE"
   local SERVICE_NAME="$(get_service_name "$SERVICE")"
   local DATABASE_NAME="$(get_database_name "$SERVICE")"
-  local PASSWORD="$(service_password "$SERVICE")"
+  local ROOTPASSWORD="$(service_root_password "$SERVICE")"
 
   [[ -n $SSH_TTY ]] && stty -opost
-  "$DOCKER_BIN" container exec "$SERVICE_NAME" bash -c "printf '[client]\ndefault-character-set=utf8mb4\npassword=$PASSWORD\n' > /root/credentials.cnf"
-  "$DOCKER_BIN" container exec "$SERVICE_NAME" mysqldump --defaults-extra-file=/root/credentials.cnf --user=mysql --single-transaction --no-tablespaces --quick "$DATABASE_NAME"
-  "$DOCKER_BIN" container exec "$SERVICE_NAME" rm /root/credentials.cnf
+  "$DOCKER_BIN" container exec "$SERVICE_NAME" mysqldump --default-character-set=utf8mb4 --user=root --password="$ROOTPASSWORD" --single-transaction --no-tablespaces --quick "$DATABASE_NAME"
   status=$?
   [[ -n $SSH_TTY ]] && stty opost
   exit $status
