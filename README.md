@@ -93,7 +93,7 @@ export MYSQL_IMAGE_VERSION="${PLUGIN_IMAGE_VERSION}"
 dokku mysql:create lollipop
 ```
 
-You can also specify custom environment variables to start the mysql service in semi-colon separated form.
+You can also specify custom environment variables to start the mysql service in semicolon-separated form.
 
 ```shell
 export MYSQL_CUSTOM_ENV="USER=alpha;HOST=beta"
