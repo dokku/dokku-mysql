@@ -1,6 +1,6 @@
 # dokku mysql [![Build Status](https://img.shields.io/github/actions/workflow/status/dokku/dokku-mysql/ci.yml?branch=master&style=flat-square "Build Status")](https://github.com/dokku/dokku-mysql/actions/workflows/ci.yml?query=branch%3Amaster) [![IRC Network](https://img.shields.io/badge/irc-libera-blue.svg?style=flat-square "IRC Libera")](https://webchat.libera.chat/?channels=dokku)
 
-Official mysql plugin for dokku. Currently defaults to installing [mysql 8.1.0](https://hub.docker.com/_/mysql/).
+Official mysql plugin for dokku. Currently defaults to installing [mysql 8.2.0](https://hub.docker.com/_/mysql/).
 
 ## Requirements
 
@@ -85,7 +85,7 @@ Create a mysql service named lollipop:
 dokku mysql:create lollipop
 ```
 
-You can also specify the image and image version to use for the service. It _must_ be compatible with the mysql image.
+You can also specify the image and image version to use for the service. It *must* be compatible with the mysql image.
 
 ```shell
 export MYSQL_IMAGE="mysql"
@@ -701,7 +701,7 @@ flags:
 
 Schedule a backup:
 
-> 'schedule' is a crontab expression, eg. "0 3 \* \* \*" for each day at 3am
+> 'schedule' is a crontab expression, eg. "0 3 * * *" for each day at 3am
 
 ```shell
 dokku mysql:backup-schedule lollipop "0 3 * * *" my-s3-bucket
