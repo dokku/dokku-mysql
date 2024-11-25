@@ -1,6 +1,6 @@
 # dokku mysql [![Build Status](https://img.shields.io/github/actions/workflow/status/dokku/dokku-mysql/ci.yml?branch=master&style=flat-square "Build Status")](https://github.com/dokku/dokku-mysql/actions/workflows/ci.yml?query=branch%3Amaster) [![IRC Network](https://img.shields.io/badge/irc-libera-blue.svg?style=flat-square "IRC Libera")](https://webchat.libera.chat/?channels=dokku)
 
-Official mysql plugin for dokku. Currently defaults to installing [mysql 9.0.1](https://hub.docker.com/_/mysql/).
+Official mysql plugin for dokku. Currently defaults to installing [mysql 9.1.0](https://hub.docker.com/_/mysql/).
 
 ## Requirements
 
@@ -24,8 +24,10 @@ mysql:backup-deauth <service>                      # remove backup authenticatio
 mysql:backup-schedule <service> <schedule> <bucket-name> [--use-iam] # schedule a backup of the mysql service
 mysql:backup-schedule-cat <service>                # cat the contents of the configured backup cronfile for the service
 mysql:backup-set-encryption <service> <passphrase> # set encryption for all future backups of mysql service
+mysql:backup-set-public-key-encryption <service> <public-key-id> # set GPG Public Key encryption for all future backups of mysql service
 mysql:backup-unschedule <service>                  # unschedule the backup of the mysql service
 mysql:backup-unset-encryption <service>            # unset encryption for future backups of the mysql service
+mysql:backup-unset-public-key-encryption <service> # unset GPG Public Key encryption for future backups of the mysql service
 mysql:clone <service> <new-service> [--clone-flags...] # create container <new-name> then copy data from <name> into <new-name>
 mysql:connect <service>                            # connect to the service via the mysql connection tool
 mysql:create <service> [--create-flags...]         # create a mysql service
@@ -675,6 +677,19 @@ Set the GPG-compatible passphrase for encrypting backups for backups:
 dokku mysql:backup-set-encryption lollipop
 ```
 
+### set GPG Public Key encryption for all future backups of mysql service
+
+```shell
+# usage
+dokku mysql:backup-set-public-key-encryption <service> <public-key-id>
+```
+
+Set the `GPG` Public Key for encrypting backups:
+
+```shell
+dokku mysql:backup-set-public-key-encryption lollipop
+```
+
 ### unset encryption for future backups of the mysql service
 
 ```shell
@@ -686,6 +701,19 @@ Unset the `GPG` encryption passphrase for backups:
 
 ```shell
 dokku mysql:backup-unset-encryption lollipop
+```
+
+### unset GPG Public Key encryption for future backups of the mysql service
+
+```shell
+# usage
+dokku mysql:backup-unset-public-key-encryption <service>
+```
+
+Unset the `GPG` Public Key encryption for backups:
+
+```shell
+dokku mysql:backup-unset-public-key-encryption lollipop
 ```
 
 ### schedule a backup of the mysql service
