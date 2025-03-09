@@ -11,7 +11,7 @@ Official mysql plugin for dokku. Currently defaults to installing [mysql 9.2.0](
 
 ```shell
 # on 0.19.x+
-sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
+sudo dokku plugin:install https://github.com/dokku/dokku-mysql.git --name mysql
 ```
 
 ## Commands
