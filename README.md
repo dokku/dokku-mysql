@@ -345,7 +345,7 @@ Expose the service on the service's normal ports, allowing access to it from the
 dokku mysql:expose lollipop 3306
 ```
 
-Expose the service on the service's normal ports, with the first on a specified ip adddress (127.0.0.1):
+Expose the service on the service's normal ports, with the first on a specified ip address (127.0.0.1):
 
 ```shell
 dokku mysql:expose lollipop 127.0.0.1:3306
@@ -729,7 +729,7 @@ flags:
 
 Schedule a backup:
 
-> 'schedule' is a crontab expression, eg. "0 3 * * *" for each day at 3am
+> 'schedule' is a crontab expression, eg. "0 3 ** *" for each day at 3am
 
 ```shell
 dokku mysql:backup-schedule lollipop "0 3 * * *" my-s3-bucket
