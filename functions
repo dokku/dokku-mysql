@@ -49,7 +49,7 @@ service_create() {
   touch "$LINKS_FILE"
 
   echo -e "[mysqld]\nperformance_schema = 0" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/disable_performance_schema.cnf"
-  echo -e "[mysqld]\ncharacter-set-server = utf8\ncollation-server = utf8_general_ci" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/charset_utf8.cnf"
+  echo -e "[mysqld]\ncharacter-set-server = utf8mb4\ncollation-server = utf8mb4_unicode_ci" >"$SERVICE_ROOT/$PLUGIN_CONFIG_SUFFIX/charset_utf8.cnf"
   ROOTPASSWORD=$(openssl rand -hex 8)
   PASSWORD=$(openssl rand -hex 8)
   if [[ -n "$SERVICE_PASSWORD" ]]; then
