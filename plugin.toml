@@ -1,4 +1,4 @@
 [plugin]
 description = "dokku mysql service plugin"
-version = "1.44.2"
+version = "1.44.3"
 [plugin.config]
