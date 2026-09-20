@@ -1,0 +1,104 @@
+---
+services:
+  mysql:
+    image: "{{ .Image }}:{{ .ImageVersion }}"
+
+    # the image's own entrypoint creates the database and both accounts from
+    # these on first boot, so there is no command of our own
+    environment:
+      MYSQL_DATABASE: "{{ .Database }}"
+      MYSQL_PASSWORD: "{{ .Secret.password }}"
+      MYSQL_ROOT_PASSWORD: "{{ .Secret.root_password }}"
+      MYSQL_USER: mysql
+
+    volumes:
+      - type: bind
+        source: "{{ .HostRoot }}/config"
+        target: /etc/mysql/conf.d
+      - type: bind
+        source: "{{ .HostRoot }}/data"
+        target: /var/lib/mysql
+
+    configs:
+      - source: disable_performance_schema
+        target: /etc/mysql/conf.d/disable_performance_schema.cnf
+      - source: charset_utf8
+        target: /etc/mysql/conf.d/charset_utf8.cnf
+
+    ports:
+      - name: native
+        target: 3306
+        primary: true
+
+configs:
+  disable_performance_schema:
+    content: |
+      [mysqld]
+      performance_schema = 0
+
+  charset_utf8:
+    content: |
+      [mysqld]
+      character-set-server = utf8mb4
+      collation-server = utf8mb4_unicode_ci
+
+x-dokku:
+  plugin: mysql
+  title: MySQL
+  scheme: mysql
+
+  # DATABASE rather than MYSQL: a linked app gets DATABASE_URL, which is what
+  # mysql, mariadb and postgres all hand over
+  alias: DATABASE
+  alt_alias: DOKKU_MYSQL
+
+  dsn: "{{ .Scheme }}://mysql:{{ .Secret.password }}@{{ .Host }}:{{ .Port.native }}/{{ .Database }}"
+
+  # the image ships a client, but it answers before the server is accepting
+  # connections during the entrypoint's own setup, so readiness stays on the
+  # port probe every datastore uses
+  wait: native
+
+  secrets:
+    password:
+      file: PASSWORD
+      length: 16
+      env: SERVICE_PASSWORD
+    root_password:
+      file: ROOTPASSWORD
+      length: 16
+      env: SERVICE_ROOT_PASSWORD
+
+  commands:
+    # the password goes in MYSQL_PWD rather than on the command line, so it is
+    # not in the container's process table where any other process could read
+    # it. The bash plugin passes --password, which mysql itself warns about.
+    connect:
+      exec: ["mysql", "--user=mysql", "--database={{ .Database }}"]
+      env:
+        MYSQL_PWD: "{{ .Secret.password }}"
+        LANG: C.UTF-8
+        LC_ALL: C.UTF-8
+
+    export:
+      exec:
+        - mysqldump
+        - --default-character-set=utf8mb4
+        - --user=root
+        - --single-transaction
+        - --no-tablespaces
+        - --quick
+        # without this the dump carries the transaction ids it was taken from,
+        # and replaying it into a server that already has them is refused. That
+        # is every restore of a service onto itself, and every clone, since the
+        # new service has ids of its own from its first boot.
+        - --set-gtid-purged=OFF
+        - "{{ .Database }}"
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+
+    import:
+      stdin: true
+      exec: ["mysql", "--user=root", "{{ .Database }}"]
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
