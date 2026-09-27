@@ -73,8 +73,10 @@ x-dokku:
     # the password goes in MYSQL_PWD rather than on the command line, so it is
     # not in the container's process table where any other process could read
     # it. The bash plugin passes --password, which mysql itself warns about.
+    # --unbuffered flushes each result as it is printed: without a terminal,
+    # as over ssh without -t, mysql otherwise holds every result until it exits.
     connect:
-      exec: ["mysql", "--user=mysql", "--database={{ .Database }}"]
+      exec: ["mysql", "--user=mysql", "--unbuffered", "--database={{ .Database }}"]
       env:
         MYSQL_PWD: "{{ .Secret.password }}"
         LANG: C.UTF-8
