@@ -83,6 +83,7 @@ x-dokku:
         LC_ALL: C.UTF-8
 
     export:
+      extra_args: true
       exec:
         - mysqldump
         - --default-character-set=utf8mb4
@@ -100,7 +101,12 @@ x-dokku:
         MYSQL_PWD: "{{ .Secret.root_password }}"
 
     import:
+      extra_args: true
       stdin: true
       exec: ["mysql", "--user=root", "{{ .Database }}"]
       env:
         MYSQL_PWD: "{{ .Secret.root_password }}"
+
+  # the databases the server keeps for itself. A service named after one would
+  # hand its app the server's own database rather than one of its own
+  reserved_names: [information_schema, mysql, performance_schema, sys]
