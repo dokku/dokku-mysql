@@ -100,10 +100,91 @@ x-dokku:
       env:
         MYSQL_PWD: "{{ .Secret.root_password }}"
 
+      # every database but the ones the server keeps for itself, whose
+      # accounts and grants would otherwise be loaded over the target's. The
+      # dump drops and makes each database again before loading it, under the
+      # name it was exported from, so it is loaded without naming one.
+      all_databases:
+        extra_args: true
+        exec:
+          - bash
+          - -c
+          - |
+            set -eo pipefail
+            listing="$(mysql --user=root -N -B -e "
+              SELECT schema_name FROM information_schema.schemata
+               WHERE schema_name NOT IN ('mysql', 'sys', 'information_schema', 'performance_schema')
+               ORDER BY schema_name")"
+            mapfile -t databases <<<"$listing"
+            exec mysqldump "$@" --add-drop-database --databases "${databases[@]}"
+          - dokku-mysql-export-all
+          - --default-character-set=utf8mb4
+          - --user=root
+          - --single-transaction
+          - --no-tablespaces
+          - --quick
+          - --set-gtid-purged=OFF
+        env:
+          MYSQL_PWD: "{{ .Secret.root_password }}"
+
     import:
       extra_args: true
       stdin: true
       exec: ["mysql", "--user=root", "{{ .Database }}"]
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+
+      # a dump of every database names each one it loads, so none is named here
+      all_databases:
+        extra_args: true
+        stdin: true
+        exec: ["mysql", "--user=root"]
+        env:
+          MYSQL_PWD: "{{ .Secret.root_password }}"
+
+    # the database is dropped and made again with the character set and
+    # collation it had, which takes the tables, views, routines, triggers and
+    # events in it. Grants on the database are kept by name rather than with it,
+    # so the account a linked app connects as keeps its access. Other sessions in
+    # the database are ended first, as a transaction one holds open would leave
+    # the drop waiting on its lock; lock_wait_timeout fails the drop rather than
+    # leaving it waiting for a year should one start in between.
+    #
+    # the create statement is read before anything is dropped, so a database
+    # that cannot be described is left alone. Written inline rather than shipped
+    # as a script, since a script is only mounted into a container made after
+    # it was added, and a reset runs in the container the service already has.
+    # The same text as mariadb's, which passes the client it ships instead.
+    reset:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          database="$1"
+          client="$2"
+          sql() {
+            "$client" --user=root --batch --skip-column-names --database="$database" "$@"
+          }
+          create="$(sql <<'SQL'
+          SELECT CONCAT('CREATE DATABASE `', SCHEMA_NAME, '` CHARACTER SET ', DEFAULT_CHARACTER_SET_NAME, ' COLLATE ', DEFAULT_COLLATION_NAME)
+            FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = DATABASE();
+          SQL
+          )"
+          if [ -z "$create" ]; then
+            echo "unable to read how the $database database was created" >&2
+            exit 1
+          fi
+          for id in $(sql -e "SELECT ID FROM information_schema.PROCESSLIST WHERE DB = DATABASE() AND ID <> CONNECTION_ID()"); do
+            sql -e "KILL $id" >/dev/null 2>&1 || true
+          done
+          printf '%s\n' \
+            "SET SESSION lock_wait_timeout = 60;" \
+            "DROP DATABASE \`$database\`;" \
+            "$create;" | sql
+        - dokku-mysql-reset
+        - "{{ .Database }}"
+        - mysql
       env:
         MYSQL_PWD: "{{ .Secret.root_password }}"
 
