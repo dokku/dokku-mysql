@@ -64,10 +64,68 @@ x-dokku:
       file: PASSWORD
       length: 16
       env: SERVICE_PASSWORD
+
+      # the image only reads MYSQL_PASSWORD when it makes the data directory,
+      # so the account is given its new password by the server itself, as root
+      # and on every host the account is defined for. The statements are
+      # written to the client's stdin rather than passed as arguments, so the
+      # password stays out of the container's process table. The same text as
+      # the root password's, and as mysql's and mariadb's, which a test holds
+      # them to.
+      change:
+        exec:
+          - sh
+          - -c
+          - |
+            set -e
+            user="$1"
+            client="$2"
+            password="$(printf '%s' "$NEW_PASSWORD" | sed "s/'/''/g")"
+            hosts="$("$client" --user=root --batch --skip-column-names -e "SELECT host FROM mysql.user WHERE user = '$user'")"
+            if [ -z "$hosts" ]; then
+              echo "there is no $user account to change the password of" >&2
+              exit 1
+            fi
+            printf '%s\n' "$hosts" | while IFS= read -r host; do
+              printf "ALTER USER '%s'@'%s' IDENTIFIED BY '%s';\n" "$user" "$host" "$password"
+            done | "$client" --user=root
+          - dokku-mysql-change-password
+          - mysql
+          - mysql
+        env:
+          MYSQL_PWD: "{{ .Secret.root_password }}"
+          NEW_PASSWORD: "{{ .NewSecret }}"
+
     root_password:
       file: ROOTPASSWORD
       length: 16
       env: SERVICE_ROOT_PASSWORD
+
+      # root is made for every host it may log in from, and each is changed
+      # with the password it logs in with now
+      change:
+        exec:
+          - sh
+          - -c
+          - |
+            set -e
+            user="$1"
+            client="$2"
+            password="$(printf '%s' "$NEW_PASSWORD" | sed "s/'/''/g")"
+            hosts="$("$client" --user=root --batch --skip-column-names -e "SELECT host FROM mysql.user WHERE user = '$user'")"
+            if [ -z "$hosts" ]; then
+              echo "there is no $user account to change the password of" >&2
+              exit 1
+            fi
+            printf '%s\n' "$hosts" | while IFS= read -r host; do
+              printf "ALTER USER '%s'@'%s' IDENTIFIED BY '%s';\n" "$user" "$host" "$password"
+            done | "$client" --user=root
+          - dokku-mysql-change-password
+          - root
+          - mysql
+        env:
+          MYSQL_PWD: "{{ .Secret.root_password }}"
+          NEW_PASSWORD: "{{ .NewSecret }}"
 
   commands:
     # the password goes in MYSQL_PWD rather than on the command line, so it is
