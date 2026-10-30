@@ -52,12 +52,142 @@ x-dokku:
   alias: DATABASE
   alt_alias: DOKKU_MYSQL
 
-  dsn: "{{ .Scheme }}://mysql:{{ .Secret.password }}@{{ .Host }}:{{ .Port.native }}/{{ .Database }}"
+  dsn: "{{ .Scheme }}://{{ .Username }}:{{ .Password }}@{{ .Host }}:{{ .Port.native }}/{{ .Database }}"
+
+  # handed over alongside the dsn by link --jdbc, for java drivers that cannot
+  # read it. They take no credentials in the userinfo, so they go in the query
+  jdbc:
+    url: "jdbc:mysql://{{ .Host }}:{{ .Port.native }}/{{ .Database }}?user={{ urlescape .Username }}&password={{ urlescape .Password }}"
+    username: "{{ .Username }}"
+    password: "{{ .Password }}"
 
   # the image ships a client, but it answers before the server is accepting
   # connections during the entrypoint's own setup, so readiness stays on the
   # port probe every datastore uses
   wait: native
+
+  # the databases and users a service holds beside its own, made as root. A
+  # user is made for every host, and is given every privilege on each database
+  # the service holds, and on each one made later, but none on the databases
+  # the server keeps for itself and no grant option, so it can neither become
+  # root nor make users of its own. Names are checked before they get here,
+  # so they are quoted rather than escaped, and a password is written to the
+  # client's stdin rather than passed as an argument. The same text as
+  # mysql's and mariadb's, which a test holds them to.
+  databases:
+    create:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          database="$1"
+          client="$2"
+          users="$3"
+          grant() {
+            hosts="$("$client" --user=root --batch --skip-column-names -e "SELECT host FROM mysql.user WHERE user = '$2'")"
+            printf '%s\n' "$hosts" | while IFS= read -r host; do
+              [ -n "$host" ] || continue
+              printf "GRANT ALL PRIVILEGES ON \`%s\`.* TO '%s'@'%s';\n" "$1" "$2" "$host"
+            done
+          }
+          {
+            printf 'CREATE DATABASE `%s`;\n' "$database"
+            for user in $users; do
+              grant "$database" "$user"
+            done
+          } | "$client" --user=root
+        - dokku-mysql-create-database
+        - "{{ .Args.database }}"
+        - mysql
+        - "{{ .Args.users }}"
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+
+    # the grants on a database outlive it, and would hand a database made
+    # later under the same name to whoever had this one, so they go with it
+    destroy:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          database="$(printf '%s' "$1" | sed "s/'/''/g")"
+          {
+            printf 'DROP DATABASE `%s`;\n' "$1"
+            printf "DELETE FROM mysql.db WHERE Db = '%s';\n" "$database"
+            printf 'FLUSH PRIVILEGES;\n'
+          } | "$2" --user=root
+        - dokku-mysql-destroy-database
+        - "{{ .Args.database }}"
+        - mysql
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+
+  users:
+    default: mysql
+    secret: password
+    reserved: [root]
+    create:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          user="$1"
+          client="$2"
+          databases="$3"
+          password="$(printf '%s' "$NEW_PASSWORD" | sed "s/'/''/g")"
+          {
+            printf "CREATE USER '%s'@'%%' IDENTIFIED BY '%s';\n" "$user" "$password"
+            for database in $databases; do
+              printf "GRANT ALL PRIVILEGES ON \`%s\`.* TO '%s'@'%%';\n" "$database" "$user"
+            done
+          } | "$client" --user=root
+        - dokku-mysql-create-user
+        - "{{ .Args.user }}"
+        - mysql
+        - "{{ .Args.databases }}"
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+        NEW_PASSWORD: "{{ .NewSecret }}"
+    destroy:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          printf "DROP USER '%s'@'%%';\n" "$1" | "$2" --user=root
+        - dokku-mysql-destroy-user
+        - "{{ .Args.user }}"
+        - mysql
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+
+    # the same text as the password's own change, given the user to change
+    change:
+      exec:
+        - sh
+        - -c
+        - |
+          set -e
+          user="$1"
+          client="$2"
+          password="$(printf '%s' "$NEW_PASSWORD" | sed "s/'/''/g")"
+          hosts="$("$client" --user=root --batch --skip-column-names -e "SELECT host FROM mysql.user WHERE user = '$user'")"
+          if [ -z "$hosts" ]; then
+            echo "there is no $user account to change the password of" >&2
+            exit 1
+          fi
+          printf '%s\n' "$hosts" | while IFS= read -r host; do
+            printf "ALTER USER '%s'@'%s' IDENTIFIED BY '%s';\n" "$user" "$host" "$password"
+          done | "$client" --user=root
+        - dokku-mysql-change-password
+        - "{{ .Args.user }}"
+        - mysql
+      env:
+        MYSQL_PWD: "{{ .Secret.root_password }}"
+        NEW_PASSWORD: "{{ .NewSecret }}"
 
   secrets:
     password:
@@ -134,9 +264,9 @@ x-dokku:
     # --unbuffered flushes each result as it is printed: without a terminal,
     # as over ssh without -t, mysql otherwise holds every result until it exits.
     connect:
-      exec: ["mysql", "--user=mysql", "--unbuffered", "--database={{ .Database }}"]
+      exec: ["mysql", "--user={{ .Username }}", "--unbuffered", "--database={{ .Database }}"]
       env:
-        MYSQL_PWD: "{{ .Secret.password }}"
+        MYSQL_PWD: "{{ .Password }}"
         LANG: C.UTF-8
         LC_ALL: C.UTF-8
 
